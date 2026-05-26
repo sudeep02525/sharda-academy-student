@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function UserLogin({ onAuthSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +26,7 @@ export default function UserLogin({ onAuthSuccess }) {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -61,7 +63,7 @@ export default function UserLogin({ onAuthSuccess }) {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register-request", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register-request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -90,7 +92,7 @@ export default function UserLogin({ onAuthSuccess }) {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register-verify", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register-verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, otp }),
@@ -123,7 +125,7 @@ export default function UserLogin({ onAuthSuccess }) {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/forgot-password", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -152,7 +154,7 @@ export default function UserLogin({ onAuthSuccess }) {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/reset-password", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp, newPassword }),

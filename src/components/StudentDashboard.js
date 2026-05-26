@@ -13,6 +13,8 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function StudentDashboard({ token, onLogout }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,7 @@ export default function StudentDashboard({ token, onLogout }) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/sams/student/dashboard", {
+      const res = await fetch(`${API_BASE_URL}/api/sams/student/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const resData = await res.json();
@@ -110,7 +112,7 @@ export default function StudentDashboard({ token, onLogout }) {
     if (!paySimulating) return;
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/sams/fees/${paySimulating._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/sams/fees/${paySimulating._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
