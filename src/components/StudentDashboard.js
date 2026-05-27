@@ -270,6 +270,18 @@ export default function StudentDashboard({ token, onLogout }) {
             materialType: sm.materialType,
           })));
         }
+        // Populate notifications from real backend notices
+        if (resData.notices && resData.notices.length > 0) {
+          setNotificationsDb(resData.notices.map(n => ({
+            id: n._id,
+            type: n.category === "General" ? "Announcements" : n.category === "Student" ? "Class Updates" : n.category,
+            title: n.title,
+            desc: n.content,
+            date: new Date(n.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+            unread: true,
+            timeAgo: new Date(n.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          })));
+        }
       } else {
         setError(resData.message || "Failed to load student portfolio.");
       }
@@ -350,6 +362,9 @@ export default function StudentDashboard({ token, onLogout }) {
       </div>
     );
   }
+
+  // Null safety: data may not be loaded yet (e.g. during payment simulation)
+  if (!data) return null;
 
   const { student, attendance, notices, timetable, fees, results } = data;
 
@@ -1551,6 +1566,10 @@ export default function StudentDashboard({ token, onLogout }) {
                       );
                     })}
                   </div>
+                  {/* Note: Submission status is tracked locally and resets on page refresh. */}
+                  <p className="text-[10px] text-slate-400 font-semibold italic pt-1 border-t border-slate-100">
+                    Note: Submission status is tracked locally and resets on page refresh.
+                  </p>
                 </div>
 
                 {/* Right Column: PDF Study Notes list */}

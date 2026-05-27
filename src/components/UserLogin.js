@@ -9,19 +9,15 @@ export default function UserLogin({ onAuthSuccess }) {
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [name, setName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [classLevel, setClassLevel] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
-  // Tab states: "signin", "register", "forgot"
+
+  // Tab states: "signin" or "forgot"
   const [tab, setTab] = useState("signin");
-  const [step, setStep] = useState(1); // For register (1=Email/Pass, 2=OTP verification) or forgot (1=Email, 2=OTP/Pass)
+  const [step, setStep] = useState(1); // For forgot: 1=Email, 2=OTP/NewPass
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [resendTimer, setResendTimer] = useState(0); // countdown in seconds
+  const [resendTimer, setResendTimer] = useState(0);
   const resendIntervalRef = useRef(null);
 
   // Start 40-second countdown
@@ -71,77 +67,6 @@ export default function UserLogin({ onAuthSuccess }) {
     } catch (err) {
       console.error(err);
       setError("Unable to connect to SAMS backend server.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegisterRequest = async (e) => {
-    e.preventDefault();
-    if (!name || !email || !phone || !classLevel || !password || !confirmPassword) {
-      setError("All fields are required including Standard.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setMessage("");
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/register-request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, classLevel, password }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        setStep(2);
-        setMessage(`A 6-digit verification code has been sent to ${email}. Check your email inbox (also check spam/junk folder).`);
-        startResendTimer();
-      } else {
-        setError(data.message || "Failed to request registration code.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Connection error. Make sure backend is running.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegisterVerify = async (e) => {
-    e.preventDefault();
-    if (!otp) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/register-verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        localStorage.setItem("user_token", data.token);
-        localStorage.setItem("user_role", data.user.role);
-        localStorage.setItem("user_name", data.user.name);
-        localStorage.setItem("user_email", data.user.email);
-        onAuthSuccess(data.token, data.user.role);
-      } else {
-        setError(data.message || "Invalid or expired verification code.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Activation failed.");
     } finally {
       setLoading(false);
     }
@@ -237,7 +162,7 @@ export default function UserLogin({ onAuthSuccess }) {
           {/* Message / Error alerts */}
           {error && (
             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-700 animate-pulse w-full">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4 text-red-600 shrink-0 mt-0.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
               </svg>
               <span>{error}</span>
@@ -245,7 +170,7 @@ export default function UserLogin({ onAuthSuccess }) {
           )}
           {message && (
             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 border border-brand-yellow/30 text-xs font-semibold text-brand-yellow-dark w-full">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4 text-brand-yellow-dark flex-shrink-0 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4 text-brand-yellow-dark shrink-0 mt-0.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
               </svg>
               <span>{message}</span>
@@ -311,132 +236,15 @@ export default function UserLogin({ onAuthSuccess }) {
           )}
 
           {/* ========================================================
-              2. SIGN UP FORM (Enrolled Students Only)
-              ======================================================== */}
-          {tab === "register" && (
-            step === 1 ? (
-              <form onSubmit={handleRegisterRequest} className="space-y-4 text-xs animate-fade-in-up">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Full Name</label>
-                    <input
-                      type="text" required
-                      value={name} onChange={e=>setName(e.target.value)}
-                      placeholder="e.g. Pooja Sharma"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Email Address</label>
-                    <input
-                      type="email" required
-                      value={email} onChange={e=>setEmail(e.target.value)}
-                      placeholder="e.g. pooja@sharda.com"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Phone Number</label>
-                    <input
-                      type="tel" required
-                      value={phone} onChange={e=>setPhone(e.target.value)}
-                      placeholder="e.g. 9876543210"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Standard (Class)</label>
-                    <select
-                      required
-                      value={classLevel} onChange={e=>setClassLevel(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
-                    >
-                      <option value="">-- Select Standard --</option>
-                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
-                        <option key={n} value={n}>Standard {n}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Create Secure Password</label>
-                    <input
-                      type="password" required
-                      value={password} onChange={e=>setPassword(e.target.value)}
-                      placeholder="Create secure password"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Confirm Password</label>
-                    <input
-                      type="password" required
-                      value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)}
-                      placeholder="Confirm your password"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-brand-blue bg-brand-yellow hover:bg-amber-400 shadow-md shadow-brand-yellow/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
-                  {loading ? "SENDING VERIFICATION..." : "CREATE PORTAL PASSWORD"}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleRegisterVerify} className="space-y-4 text-xs animate-fade-in-up">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 text-center">Enter 6-Digit Email OTP</label>
-                  <input
-                    type="text" required maxLength={6}
-                    value={otp} onChange={e=>setOtp(e.target.value)}
-                    placeholder="------"
-                    className="w-full px-4 py-2.5 text-center font-mono text-lg tracking-widest rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
-                  />
-                </div>
-                
-                <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
-                  {loading ? "ACTIVATING..." : "VERIFY & ACTIVATE"}
-                </button>
-
-                {/* Resend Code */}
-                <div className="text-center">
-                  {resendTimer > 0 ? (
-                    <p className="text-[10px] text-slate-400 font-semibold">
-                      Resend code in <span className="text-brand-yellow font-bold">{resendTimer}s</span>
-                    </p>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={async () => {
-                        setLoading(true); setError(""); setMessage("");
-                        try {
-                          const res = await fetch(`${API_BASE_URL}/api/auth/register-request`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ name, email, phone, classLevel, password }),
-                          });
-                          const data = await res.json();
-                          if (data.success) { setMessage("A new OTP has been sent to your email."); startResendTimer(); }
-                          else setError(data.message || "Failed to resend code.");
-                        } catch { setError("Connection error."); }
-                        finally { setLoading(false); }
-                      }}
-                      className="text-[10px] font-bold text-brand-blue hover:text-blue-800 underline underline-offset-2 transition cursor-pointer uppercase tracking-wider"
-                    >
-                      Resend Code
-                    </button>
-                  )}
-                </div>
-              </form>
-            )
-          )}
-
-          {/* ========================================================
-              3. FORGOT PASSWORD RECOVERY FORM
+              2. FORGOT PASSWORD RECOVERY FORM
               ======================================================== */}
           {tab === "forgot" && (
             step === 1 ? (
               <form onSubmit={handleForgotRequest} className="space-y-4 text-xs animate-fade-in-up">
+                <div className="text-center pb-2">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-brand-blue">Reset Your Password</h3>
+                  <p className="text-[9px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Enter your registered email</p>
+                </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Registered Email</label>
                   <input
@@ -449,10 +257,14 @@ export default function UserLogin({ onAuthSuccess }) {
                 <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-brand-blue bg-brand-yellow hover:bg-amber-400 shadow-md shadow-brand-yellow/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
                   {loading ? "SENDING OTP..." : "SEND RECOVERY CODE"}
                 </button>
-                <button type="button" onClick={() => { setTab("signin"); setStep(1); }} className="w-full text-center text-[10px] text-slate-400 hover:text-slate-800 font-bold uppercase tracking-wider transition duration-200 cursor-pointer">← Back to Sign In</button>
+                <button type="button" onClick={() => { setTab("signin"); setStep(1); setError(""); setMessage(""); }} className="w-full text-center text-[10px] text-slate-400 hover:text-slate-800 font-bold uppercase tracking-wider transition duration-200 cursor-pointer">← Back to Sign In</button>
               </form>
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-4 text-xs animate-fade-in-up">
+                <div className="text-center pb-2">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-brand-blue">Enter Recovery Code</h3>
+                  <p className="text-[9px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Check your email inbox</p>
+                </div>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Enter 6-Digit Email OTP</label>
@@ -525,6 +337,8 @@ export default function UserLogin({ onAuthSuccess }) {
                     </button>
                   )}
                 </div>
+
+                <button type="button" onClick={() => { setStep(1); setError(""); setMessage(""); }} className="w-full text-center text-[10px] text-slate-400 hover:text-slate-800 font-bold uppercase tracking-wider transition duration-200 cursor-pointer">← Back</button>
               </form>
             )
           )}
