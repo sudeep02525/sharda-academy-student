@@ -1,361 +1,307 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════
-   PREMIUM THEME BRAND SYSTEM — Sharda Gold Light Theme Overhaul
-   Primary BG:     Warm Beige #faf9f6 
-   Card BG:        Frosted White Glassmorphism rgba(255, 255, 255, 0.72)
-   Accent Sidebar: Solid Deep Navy #0a1835 (White text, gold indicators)
-   Active State:   Gold Yellow #f1af3c 
-   Text Base:      Deep Navy / Slate #0f1a30 / #5e6675
-   ═══════════════════════════════════════════════════════════════ */
-:root, .dark {
-  --primary-blue: #0a1835 !important;
-  --secondary-yellow: #f1af3c !important;
-  --accent-red: #dc2626 !important;
-  --sky-blue: #0a1835 !important;
+   SHARDA ACADEMY — PREMIUM DESIGN SYSTEM
+   Brand Colors:
+   ─ Navy Dark:   #0a1835  (sidebar, header, dark CTAs)
+   ─ Gold:        #f1af3c  (active states, accents)
+   ─ Gold Dark:   #d97706  (text on gold bg)
+   ─ Beige BG:    #f8f7f4  (page background)
+   ─ Card BG:     #ffffff  (cards)
+   ─ Text Dark:   #111827  (headings)
+   ─ Text Mid:    #374151  (body)
+   ─ Text Soft:   #6b7280  (captions, labels)
+   ─ Border:      #e5e7eb  (dividers)
+   Typography:
+   ─ Primary:     'Inter' (body, UI text)
+   ─ Display:     'Outfit' (headings, numbers)
+═══════════════════════════════════════════════════════════════ */
 
-  --background: #faf9f6 !important;
-  --foreground: #0f1a30 !important;
-  
-  --card-bg: rgba(255, 255, 255, 0.72) !important;
-  --card-border: rgba(10, 24, 53, 0.08) !important;
-  --glow-color: rgba(241, 175, 60, 0.12) !important;
-}
-
-/* Override default Tailwind v4 colors globally to enforce brand identity */
+/* ── Tailwind Theme Tokens ── */
 @theme {
-  --color-slate-50: #faf9f6;
-  --color-slate-100: #f5f3ed;
-  --color-slate-200: rgba(10, 24, 53, 0.08);
-  --color-slate-300: rgba(10, 24, 53, 0.15);
-  --color-slate-400: #5e6675;
-  --color-slate-500: #5e6675;
-  --color-slate-650: #0f1a30;
-  --color-slate-655: #0f1a30;
-  --color-slate-600: #0f1a30;
-  --color-slate-700: #0f1a30;
-  --color-slate-800: #0a1835;
-  --color-slate-900: #0a1835;
-  --color-slate-955: #faf9f6;
-  --color-slate-950: #faf9f6;
-  
-  --color-brand-blue: #0a1835;
+  --font-sans: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-display: 'Outfit', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  --color-brand-navy:   #0a1835;
+  --color-brand-navy2:  #0f2347;
+  --color-brand-gold:   #f1af3c;
+  --color-brand-gold2:  #d97706;
+  --color-brand-red:    #dc2626;
+  --color-brand-beige:  #f8f7f4;
+
+  --color-brand-blue:   #0a1835;
   --color-brand-yellow: #f1af3c;
-  --color-brand-red: #dc2626;
-  --color-brand-sky: #0a1835;
+
+  --color-slate-50:  #f8f7f4;
+  --color-slate-100: #f3f2ef;
+  --color-slate-150: #eceae6;
+  --color-slate-200: #e5e7eb;
+  --color-slate-300: #d1d5db;
+  --color-slate-400: #9ca3af;
+  --color-slate-500: #6b7280;
+  --color-slate-600: #4b5563;
+  --color-slate-700: #374151;
+  --color-slate-800: #1f2937;
+  --color-slate-900: #111827;
+  --color-slate-950: #0a0f1e;
 }
 
-/* Enforce signature light-theme typography globally */
+/* ── Reset & Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
 body {
-  color: #0f1a30 !important;
-  background-color: #faf9f6 !important;
-  background: #faf9f6 !important;
-  font-family: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-  font-size: 13.5px !important;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f7f4;
+  color: #111827;
+  font-family: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(241, 175, 60, 0.2) !important;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #f1af3c !important;
+/* ── Typography Scale ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #111827;
+  margin: 0;
 }
 
-/* Sidebar Styling: Solid Deep Navy with gold/white accents matching landing page */
-aside, .glass-panel {
+h1 { font-size: 2rem;   font-weight: 800; }
+h2 { font-size: 1.5rem; font-weight: 800; }
+h3 { font-size: 1.25rem; font-weight: 700; }
+h4 { font-size: 1rem;   font-weight: 700; }
+h5 { font-size: 0.875rem; font-weight: 700; }
+
+p  { margin: 0; color: #374151; }
+
+label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: 0.025em;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #f1af3c; }
+
+/* ── Dot background texture ── */
+.dotbg {
+  background-image: radial-gradient(rgba(10,24,53,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-attachment: local;
+}
+
+/* ── Sidebar (Navy) ── */
+aside {
   background: #0a1835 !important;
   color: #ffffff !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-right: 1px solid rgba(255,255,255,0.07) !important;
 }
 
 aside h1 {
   color: #ffffff !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.85rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em !important;
 }
 
 aside p {
   color: #f1af3c !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
 }
 
-/* Sidebar navigation links */
 aside nav button {
-  color: rgba(255, 255, 255, 0.72) !important;
-  font-family: 'Outfit', sans-serif !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  position: relative;
-  overflow: hidden;
-}
-
-aside nav button::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 15%;
-  height: 70%;
-  width: 3.5px;
-  background-color: #f1af3c;
-  border-radius: 0 4px 4px 0;
-  opacity: 0;
-  transform: scaleY(0.3);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-aside nav button:hover::before {
-  opacity: 0.5;
-  transform: scaleY(0.7);
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: rgba(255,255,255,0.7) !important;
+  letter-spacing: 0.01em;
+  transition: all 0.2s ease !important;
 }
 
 aside nav button:hover {
-  background-color: rgba(255, 255, 255, 0.05) !important;
   color: #f1af3c !important;
-  padding-left: 1.25rem !important;
+  background: rgba(255,255,255,0.06) !important;
 }
 
-aside nav button[class*="bg-brand-yellow"], aside nav button[class*="bg-slate-100"] {
-  background: #f1af3c !important; /* Sharda active state gets gold background! */
-  color: #0a1835 !important; /* Deep navy text for contrast */
+aside nav button[class*="bg-brand-yellow"] {
+  background: #f1af3c !important;
+  color: #0a1835 !important;
+  font-weight: 850 !important;
 }
 
-aside nav button[class*="bg-brand-yellow"]::before, aside nav button[class*="bg-slate-100"]::before {
-  background-color: #0a1835 !important;
-  opacity: 1 !important;
-  transform: scaleY(1) !important;
-}
-
-/* Header Styling: Solid Deep Navy with gold bottom line */
+/* ── Top Header (Navy) ── */
 header {
   background: #0a1835 !important;
   color: #ffffff !important;
-  border-bottom: 2.5px solid #f1af3c !important; 
+  border-bottom: 2px solid #f1af3c !important;
 }
 
 header h2 {
-  color: #ffffff !important;
   font-family: 'Outfit', sans-serif !important;
-}
-
-header button {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
   color: #ffffff !important;
+  letter-spacing: 0.02em !important;
 }
 
-header button:hover {
-  background-color: #f1af3c !important;
-  color: #0a1835 !important;
+/* Override aggressive button styles inside header only for action buttons */
+header button:not([class*="bg-"]) {
+  background-color: rgba(255,255,255,0.07) !important;
+  color: rgba(255,255,255,0.85) !important;
 }
 
-/* Premium Glassmorphic White Cards */
+header button:not([class*="bg-"]):hover {
+  background-color: rgba(241,175,60,0.15) !important;
+  color: #f1af3c !important;
+}
+
+/* ── Cards ── */
 .premium-glass-card {
-  background-color: rgba(255, 255, 255, 0.72) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  box-shadow: 0 8px 30px rgba(10, 24, 53, 0.035) !important;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  border-radius: 18px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .premium-glass-card:hover {
-  border-color: rgba(241, 175, 60, 0.4) !important;
-  box-shadow: 0 12px 32px rgba(241, 175, 60, 0.12), 0 4px 12px rgba(10, 24, 53, 0.02) !important;
-  transform: translateY(-2.5px) !important;
+  border-color: rgba(241,175,60,0.35) !important;
+  box-shadow: 0 4px 20px rgba(241,175,60,0.1), 0 1px 4px rgba(0,0,0,0.04) !important;
 }
 
-/* Standard contrast grids */
-.premium-dark-glass {
-  background-color: #faf9f6 !important;
-  border: 1px solid rgba(10, 24, 53, 0.08) !important;
-  box-shadow: 0 8px 30px rgba(10, 24, 53, 0.03) !important;
-  border-radius: 18px !important;
-}
-
-/* Fix text colors for labels and headers to match light system */
-label {
-  color: #0a1835 !important;
-  font-weight: 750 !important;
-  font-family: 'Outfit', sans-serif !important;
-}
-
-h3, h4, h5 {
-  color: #0a1835 !important;
-  font-family: 'Outfit', sans-serif !important;
-}
-
-/* Direct background utility overrides for light cards */
-div[class*="bg-slate-50"], div[class*="bg-slate-950"],
-.bg-slate-50, .bg-slate-950 {
-  background-color: #faf9f6 !important;
-}
-
-/* Gradients */
-.gradient-brand-header {
-  background: linear-gradient(135deg, #0a1835 0%, #0c1e3f 50%, #0f2347 100%) !important;
-}
-
-.gradient-brand-accent {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-}
-
-.gradient-brand-yellow {
-  background: linear-gradient(135deg, #f1af3c 0%, #d97706 100%) !important;
-}
-
-/* Micro-animations */
-.hover-glow:hover {
-  box-shadow: 0 0 20px rgba(241, 175, 60, 0.12) !important;
-  border-color: #f1af3c !important;
-  transform: translateY(-2.5px) !important;
-}
-
-/* Custom Grids for mobile responsiveness */
-.mobile-safe-container {
-  padding-left: 1rem;
-  padding-right: 1rem;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 1200px;
-}
-
-/* Noise texture overlay */
-.noise::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Grid dot bg */
-.dotbg {
-  background-image: radial-gradient(rgba(10, 24, 53, 0.05) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-.bg-brand-beige {
-  background-color: #faf9f6 !important;
-}
-
-/* Premium Global Input & Form Control Overrides */
+/* ── Inputs ── */
 input, select, textarea {
-  background-color: #ffffff !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.875rem !important;
+  color: #111827 !important;
   background: #ffffff !important;
-  border: 1.5px solid rgba(10, 24, 53, 0.12) !important;
-  color: #0f1a30 !important;
-  border-radius: 12px !important;
-  font-family: 'Outfit', sans-serif !important;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border: 1.5px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
+
 input:focus, select:focus, textarea:focus {
   outline: none !important;
   border-color: #f1af3c !important;
-  box-shadow: 0 0 0 3px rgba(241, 175, 60, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(241,175,60,0.12) !important;
 }
+
 input::placeholder, textarea::placeholder {
-  color: #94a3b8 !important;
+  color: #9ca3af !important;
+  font-weight: 400 !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   PREMIUM MOTION & LIGHTING EFFECTS (WORLD-CLASS UI/UX)
-   ═══════════════════════════════════════════════════════════════ */
-
-@keyframes float {
-  0% { transform: translateY(0px) scale(1) rotate(0deg); }
-  50% { transform: translateY(-10px) scale(1.03) rotate(2deg); }
-  100% { transform: translateY(0px) scale(1) rotate(0deg); }
+/* Search Input in dark header — fully transparent */
+.search-input {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.8rem !important;
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255,255,255,0.9) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+.search-input:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.search-input::placeholder {
+  color: rgba(255,255,255,0.35) !important;
 }
 
-@keyframes float-reverse {
-  0% { transform: translateY(0px) scale(1.03) rotate(0deg); }
-  50% { transform: translateY(10px) scale(1) rotate(-2deg); }
-  100% { transform: translateY(0px) scale(1.03) rotate(0deg); }
-}
+/* ── Brand utility classes ── */
+.bg-brand-beige { background-color: #f8f7f4 !important; }
 
+/* ── Animations ── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
-    filter: drop-shadow(0 0 4px rgba(241, 175, 60, 0.18));
-  }
-  50% {
-    filter: drop-shadow(0 0 14px rgba(241, 175, 60, 0.42));
-  }
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(241,175,60,0.15)); }
+  50%       { filter: drop-shadow(0 0 10px rgba(241,175,60,0.35)); }
 }
 
 @keyframes laserSweep {
-  0% { top: 0%; opacity: 0; }
-  5% { opacity: 1; }
-  95% { opacity: 1; }
+  0%   { top: 0%; opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
   100% { top: 100%; opacity: 0; }
 }
 
-/* Soft motion transitions */
-.animate-float-slow {
-  animation: float 9s ease-in-out infinite;
-}
-
-.animate-float-reverse {
-  animation: float-reverse 10s ease-in-out infinite;
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-pulse-glow {
-  animation: pulseGlow 3s ease-in-out infinite;
+  animation: pulseGlow 2.5s ease-in-out infinite;
 }
 
 .biometric-laser-line {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent 10%, #f1af3c 50%, transparent 90%);
-  box-shadow: 0 0 10px #f1af3c, 0 0 20px #f1af3c;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #f1af3c, transparent);
   animation: laserSweep 3s ease-in-out infinite;
 }
 
-/* Premium micro-transition overrides for dashboard clicks */
-.tab-transition {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+/* ── Micro interactions ── */
+.hover-lift {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
-/* Glass card subtle gold glowing outline */
-.glow-card-gold {
-  position: relative;
+.hover-glow {
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.glow-card-gold::before {
+.hover-glow:hover {
+  transform: translateY(-2px);
+  border-color: rgba(241, 175, 60, 0.4) !important;
+  box-shadow: 0 10px 25px -5px rgba(241, 175, 60, 0.12), 0 8px 10px -6px rgba(241, 175, 60, 0.08) !important;
+}
+
+/* ── Noise overlay ── */
+.noise::before {
   content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(241,175,60,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(10, 24, 53, 0.05) 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  position: fixed;
+  inset: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -9,6 +9,11 @@ export default function UserLogin({ onAuthSuccess }) {
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [name, setName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [classLevel, setClassLevel] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   
   // Tab states: "signin", "register", "forgot"
   const [tab, setTab] = useState("signin");
@@ -16,6 +21,23 @@ export default function UserLogin({ onAuthSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [resendTimer, setResendTimer] = useState(0); // countdown in seconds
+  const resendIntervalRef = useRef(null);
+
+  // Start 40-second countdown
+  const startResendTimer = () => {
+    setResendTimer(40);
+    if (resendIntervalRef.current) clearInterval(resendIntervalRef.current);
+    resendIntervalRef.current = setInterval(() => {
+      setResendTimer(prev => {
+        if (prev <= 1) { clearInterval(resendIntervalRef.current); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Clean up timer on unmount
+  useEffect(() => () => { if (resendIntervalRef.current) clearInterval(resendIntervalRef.current); }, []);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -56,7 +78,15 @@ export default function UserLogin({ onAuthSuccess }) {
 
   const handleRegisterRequest = async (e) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!name || !email || !phone || !classLevel || !password || !confirmPassword) {
+      setError("All fields are required including Standard.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -66,13 +96,14 @@ export default function UserLogin({ onAuthSuccess }) {
       const res = await fetch(`${API_BASE_URL}/api/auth/register-request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, phone, classLevel, password }),
       });
       const data = await res.json();
 
       if (data.success) {
         setStep(2);
-        setMessage("A 6-digit registration code has been dispatched to your email (check backend console logs)!");
+        setMessage(`A 6-digit verification code has been sent to ${email}. Check your email inbox (also check spam/junk folder).`);
+        startResendTimer();
       } else {
         setError(data.message || "Failed to request registration code.");
       }
@@ -95,7 +126,7 @@ export default function UserLogin({ onAuthSuccess }) {
       const res = await fetch(`${API_BASE_URL}/api/auth/register-verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, otp }),
+        body: JSON.stringify({ email, otp }),
       });
       const data = await res.json();
 
@@ -134,7 +165,8 @@ export default function UserLogin({ onAuthSuccess }) {
 
       if (data.success) {
         setStep(2);
-        setMessage("A 6-digit recovery code has been dispatched to your email (check backend console logs)!");
+        setMessage(`A 6-digit recovery code has been sent to ${email}. Check your email inbox.`);
+        startResendTimer();
       } else {
         setError(data.message || "Failed to request recovery code.");
       }
@@ -179,215 +211,328 @@ export default function UserLogin({ onAuthSuccess }) {
   };
 
   return (
-    <div className="relative min-h-screen bg-brand-beige flex flex-col items-center justify-center p-4 overflow-hidden noise dotbg">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-brand-beige dotbg noise">
       
-      {/* Glowing backdrop ambient decorations */}
-      <div className="absolute -top-12 -left-12 w-96 h-96 rounded-full bg-brand-blue/15 blur-3xl pointer-events-none animate-float-slow"></div>
-      <div className="absolute -bottom-16 -right-16 w-96 h-96 rounded-full bg-brand-yellow/15 blur-3xl pointer-events-none animate-float-reverse"></div>
-
-      {/* Premium Frosted Login Frame with Golden Neon Glow Card overlay and fade-in-up entry */}
-      <div className="relative z-10 w-full max-w-md p-8 rounded-3xl backdrop-blur-xl bg-white/75 border border-white/50 shadow-2xl space-y-6 transition-all hover:shadow-brand-yellow/15 glow-card-gold animate-fade-in-up">
+      <div className="w-full max-w-md relative z-10">
         
-        {/* Logo and branding */}
-        <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 mb-3 rounded-2xl bg-brand-blue flex items-center justify-center shadow-md shadow-brand-blue/20">
-            <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-          </div>
-          <h2 className="text-lg font-black text-brand-blue uppercase tracking-tight">SHARDA ACADEMY</h2>
-          <p className="text-[9px] font-bold text-brand-yellow uppercase tracking-widest leading-none mt-1">Student Portal Gateway</p>
+        {/* Logo & branding header (Outside/Above the Card) */}
+        <div className="flex flex-col items-center mb-6 text-center">
+          <img src="/logo.png" alt="Sharda Academy Logo" className="w-16 h-16 mb-2"
+            onError={(e) => { e.target.style.display = 'none'; }} style={{ objectFit: "contain" }} />
+          <h2 className="text-xl font-black text-brand-blue uppercase tracking-tight">SHARDA ACADEMY</h2>
+          <p className="text-[9px] font-bold text-brand-yellow uppercase tracking-widest mt-0.5">Student Portal Gateway</p>
         </div>
 
-        {/* Tab Swappers (Sign In vs Sign Up) */}
-        {tab !== "forgot" && (
-          <div className="grid grid-cols-2 gap-1 p-1 bg-slate-200/50 rounded-2xl border border-slate-300/20">
-            <button
-              onClick={() => { setTab("signin"); setError(""); setMessage(""); setStep(1); }}
-              className={`py-2.5 text-[10px] font-extrabold uppercase tracking-wider rounded-xl transition-all duration-300 cursor-pointer ${
-                tab === "signin" 
-                  ? "bg-brand-blue text-white shadow" 
-                  : "text-slate-500 hover:text-slate-800 hover:bg-white/30"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => { setTab("register"); setError(""); setMessage(""); setStep(1); }}
-              className={`py-2.5 text-[10px] font-extrabold uppercase tracking-wider rounded-xl transition-all duration-300 cursor-pointer ${
-                tab === "register" 
-                  ? "bg-brand-blue text-white shadow" 
-                  : "text-slate-500 hover:text-slate-800 hover:bg-white/30"
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
-        )}
+        {/* Unified White Card with Gold highlight */}
+        <div className="w-full max-w-md p-8 rounded-2xl bg-white border border-brand-yellow/30 shadow-2xl space-y-6">
 
-        {/* Message / Error alerts */}
-        {error && (
-          <div className="p-3.5 text-xs font-bold text-white bg-brand-red/90 rounded-2xl animate-pulse flex items-center gap-2">
-            <span>⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
-        {message && (
-          <div className="p-3.5 text-xs font-bold text-brand-blue bg-brand-yellow rounded-2xl flex items-center gap-2">
-            <span>📧</span>
-            <span>{message}</span>
-          </div>
-        )}
-
-        {/* ========================================================
-            1. SIGN IN FORM
-            ======================================================== */}
-        {tab === "signin" && (
-          <form onSubmit={handleSignIn} className="space-y-4 text-xs animate-fade-in-up">
-            <div className="space-y-4">
-              <div>
-                <label className="block font-bold text-slate-650 mb-1.5 uppercase tracking-wider text-[10px]">Registered Email</label>
-                <input
-                  type="email" required
-                  value={email} onChange={e=>setEmail(e.target.value)}
-                  placeholder="e.g. pooja@sharda.com"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/80 focus:outline-none focus:border-brand-yellow transition-all"
-                />
-              </div>
-              <div>
-                <label className="block font-bold text-slate-655 mb-1.5 uppercase tracking-wider text-[10px]">Password</label>
-                <input
-                  type="password" required
-                  value={password} onChange={e=>setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/80 focus:outline-none focus:border-brand-yellow transition-all"
-                />
-              </div>
+          {/* Header Label */}
+          {tab !== "forgot" && (
+            <div className="text-center pb-2">
+              <h3 className="text-xs font-black uppercase tracking-wider text-brand-blue">Sign In To Student Portal</h3>
+              <p className="text-[9px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Enrolled Academy Students Only</p>
             </div>
+          )}
 
-            <button type="submit" disabled={loading} className="w-full py-3 rounded-2xl text-xs font-black text-white bg-brand-blue hover:bg-brand-blue-light shadow-md shadow-brand-blue/20 transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer">
-              {loading ? "AUTHENTICATING..." : "SIGN IN TO PORTAL"}
-            </button>
+          {/* Message / Error alerts */}
+          {error && (
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-700 animate-pulse w-full">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+          {message && (
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 border border-brand-yellow/30 text-xs font-semibold text-brand-yellow-dark w-full">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4 text-brand-yellow-dark flex-shrink-0 mt-0.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+              <span>{message}</span>
+            </div>
+          )}
 
-            <button
-              type="button"
-              onClick={() => { setTab("forgot"); setStep(1); setError(""); setMessage(""); }}
-              className="block w-full text-center text-[10px] font-bold text-slate-450 hover:text-brand-blue transition uppercase tracking-wider cursor-pointer"
-            >
-              Forgot Password?
-            </button>
-          </form>
-        )}
-
-        {/* ========================================================
-            2. SIGN UP FORM (Enrolled Students Only)
-            ======================================================== */}
-        {tab === "register" && (
-          step === 1 ? (
-            <form onSubmit={handleRegisterRequest} className="space-y-4 text-xs animate-fade-in-up">
-              <div className="p-3 bg-blue-50/60 border border-brand-blue/10 text-[10px] text-slate-500 rounded-xl leading-relaxed text-left font-semibold">
-                ℹ️ <strong>Enrolled Students Only:</strong> Your email address must be pre-created by the Sharda Academy administration to sign up for portal access.
-              </div>
+          {/* ========================================================
+              1. SIGN IN FORM
+              ======================================================== */}
+          {tab === "signin" && (
+            <form onSubmit={handleSignIn} className="space-y-4 text-xs animate-fade-in-up">
               <div className="space-y-4">
                 <div>
-                  <label className="block font-bold text-slate-650 mb-1.5 uppercase tracking-wider text-[10px]">Enrolled Email Address</label>
+                  <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Registered Email</label>
                   <input
                     type="email" required
                     value={email} onChange={e=>setEmail(e.target.value)}
-                    placeholder="e.g. student@sharda.com"
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/80 focus:outline-none focus:border-brand-yellow transition-all"
+                    placeholder="e.g. pooja@sharda.com"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-650 mb-1.5 uppercase tracking-wider text-[10px]">Create Secure Password</label>
-                  <input
-                    type="password" required
-                    value={password} onChange={e=>setPassword(e.target.value)}
-                    placeholder="Create your portal password"
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/80 focus:outline-none focus:border-brand-yellow transition-all"
-                  />
+                  <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"} required
+                      value={password} onChange={e=>setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 focus:outline-none select-none cursor-pointer"
+                    >
+                      {showPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.815 7.815 3 3m-3-3a8.2 8.2 0 0 1-4.59 1.59M12.013 9.014a3 3 0 1 0 4.28 4.28" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className="w-full py-3 rounded-2xl text-xs font-black text-white bg-brand-blue hover:bg-brand-blue-light transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer">
-                {loading ? "SENDING VERIFICATION..." : "CREATE PORTAL PASSWORD"}
+              <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-brand-blue bg-brand-yellow hover:bg-amber-400 shadow-md shadow-brand-yellow/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
+                {loading ? "AUTHENTICATING..." : "SIGN IN TO PORTAL"}
               </button>
-            </form>
-          ) : (
-            <form onSubmit={handleRegisterVerify} className="space-y-4 text-xs animate-fade-in-up">
-              <div>
-                <label className="block font-bold text-slate-650 mb-1.5 uppercase tracking-wider text-[10px] text-center">Enter 6-Digit Email OTP</label>
-                <input
-                  type="text" required maxLength={6}
-                  value={otp} onChange={e=>setOtp(e.target.value)}
-                  placeholder="------"
-                  className="w-full px-4 py-3 text-center font-mono text-lg tracking-widest rounded-2xl border border-slate-200 bg-white/80 focus:outline-none focus:border-brand-yellow transition-all"
-                />
-              </div>
-              
-              <button type="submit" disabled={loading} className="w-full py-3 rounded-2xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer">
-                {loading ? "ACTIVATING..." : "VERIFY & ACTIVATE"}
-              </button>
-            </form>
-          )
-        )}
 
-        {/* ========================================================
-            3. FORGOT PASSWORD RECOVERY FORM
-            ======================================================== */}
-        {tab === "forgot" && (
-          step === 1 ? (
-            <form onSubmit={handleForgotRequest} className="space-y-4 text-xs animate-fade-in-up">
-              <div>
-                <label className="block font-bold text-slate-650 mb-1.5 uppercase tracking-wider text-[10px]">Registered Email</label>
-                <input
-                  type="email" required
-                  value={email} onChange={e=>setEmail(e.target.value)}
-                  placeholder="e.g. pooja@sharda.com"
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/80 focus:outline-none focus:border-brand-yellow transition-all"
-                />
-              </div>
-              <button type="submit" disabled={loading} className="w-full py-3 rounded-2xl text-xs font-black text-white bg-brand-blue hover:bg-brand-blue-light transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer">
-                {loading ? "SENDING OTP..." : "SEND RECOVERY CODE"}
+              <button
+                type="button"
+                onClick={() => { setTab("forgot"); setStep(1); setError(""); setMessage(""); }}
+                className="block w-full text-center text-[10px] font-bold text-slate-500 hover:text-brand-blue transition uppercase tracking-wider cursor-pointer"
+              >
+                Forgot Password?
               </button>
-              <button type="button" onClick={() => { setTab("signin"); setStep(1); }} className="w-full text-center text-[10px] text-slate-400 hover:text-slate-800 font-bold uppercase tracking-wider transition duration-200 cursor-pointer">← Back to Sign In</button>
             </form>
-          ) : (
-            <form onSubmit={handleResetPassword} className="space-y-4 text-xs animate-fade-in-up">
-              <div className="space-y-4">
+          )}
+
+          {/* ========================================================
+              2. SIGN UP FORM (Enrolled Students Only)
+              ======================================================== */}
+          {tab === "register" && (
+            step === 1 ? (
+              <form onSubmit={handleRegisterRequest} className="space-y-4 text-xs animate-fade-in-up">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Full Name</label>
+                    <input
+                      type="text" required
+                      value={name} onChange={e=>setName(e.target.value)}
+                      placeholder="e.g. Pooja Sharma"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Email Address</label>
+                    <input
+                      type="email" required
+                      value={email} onChange={e=>setEmail(e.target.value)}
+                      placeholder="e.g. pooja@sharda.com"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Phone Number</label>
+                    <input
+                      type="tel" required
+                      value={phone} onChange={e=>setPhone(e.target.value)}
+                      placeholder="e.g. 9876543210"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Standard (Class)</label>
+                    <select
+                      required
+                      value={classLevel} onChange={e=>setClassLevel(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    >
+                      <option value="">-- Select Standard --</option>
+                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+                        <option key={n} value={n}>Standard {n}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Create Secure Password</label>
+                    <input
+                      type="password" required
+                      value={password} onChange={e=>setPassword(e.target.value)}
+                      placeholder="Create secure password"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Confirm Password</label>
+                    <input
+                      type="password" required
+                      value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)}
+                      placeholder="Confirm your password"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-brand-blue bg-brand-yellow hover:bg-amber-400 shadow-md shadow-brand-yellow/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
+                  {loading ? "SENDING VERIFICATION..." : "CREATE PORTAL PASSWORD"}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleRegisterVerify} className="space-y-4 text-xs animate-fade-in-up">
                 <div>
-                  <label className="block font-bold text-slate-650 mb-1.5 uppercase tracking-wider text-[10px]">Enter 6-Digit Email OTP</label>
+                  <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 text-center">Enter 6-Digit Email OTP</label>
                   <input
                     type="text" required maxLength={6}
                     value={otp} onChange={e=>setOtp(e.target.value)}
                     placeholder="------"
-                    className="w-full px-4 py-3 text-center font-mono text-lg tracking-widest rounded-2xl border border-slate-200 bg-white/80 focus:outline-none"
+                    className="w-full px-4 py-2.5 text-center font-mono text-lg tracking-widest rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
                   />
                 </div>
-                <div>
-                  <label className="block font-bold text-slate-650 mb-1.5 uppercase tracking-wider text-[10px]">Enter New Password</label>
-                  <input
-                    type="password" required
-                    value={newPassword} onChange={e=>setNewPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white/80 focus:outline-none"
-                  />
-                </div>
-              </div>
-              <button type="submit" disabled={loading} className="w-full py-3 rounded-2xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer">
-                {loading ? "RESETTING..." : "RESET & SIGN IN"}
-              </button>
-            </form>
-          )
-        )}
+                
+                <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
+                  {loading ? "ACTIVATING..." : "VERIFY & ACTIVATE"}
+                </button>
 
-        {/* Sandbox credentials preview */}
-        <div className="p-4 mt-4 rounded-2xl bg-slate-100/50 border border-slate-200/20 text-[10px] text-slate-500 space-y-1.5 text-left">
-          <p className="font-bold uppercase tracking-wider text-slate-450 text-[8.5px]">Sandbox Preview Options:</p>
-          <p><span className="font-semibold text-brand-blue">Active Logins (Pooja):</span> pooja@sharda.com (Pass: student123)</p>
-          <p><span className="font-semibold text-brand-blue">Sign Up (Amit):</span> student@sharda.com (No password pre-set!)</p>
-          <p className="text-[9px] italic text-slate-400">OTP dispatched to email prints in backend console logs.</p>
+                {/* Resend Code */}
+                <div className="text-center">
+                  {resendTimer > 0 ? (
+                    <p className="text-[10px] text-slate-400 font-semibold">
+                      Resend code in <span className="text-brand-yellow font-bold">{resendTimer}s</span>
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={async () => {
+                        setLoading(true); setError(""); setMessage("");
+                        try {
+                          const res = await fetch(`${API_BASE_URL}/api/auth/register-request`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ name, email, phone, classLevel, password }),
+                          });
+                          const data = await res.json();
+                          if (data.success) { setMessage("A new OTP has been sent to your email."); startResendTimer(); }
+                          else setError(data.message || "Failed to resend code.");
+                        } catch { setError("Connection error."); }
+                        finally { setLoading(false); }
+                      }}
+                      className="text-[10px] font-bold text-brand-blue hover:text-blue-800 underline underline-offset-2 transition cursor-pointer uppercase tracking-wider"
+                    >
+                      Resend Code
+                    </button>
+                  )}
+                </div>
+              </form>
+            )
+          )}
+
+          {/* ========================================================
+              3. FORGOT PASSWORD RECOVERY FORM
+              ======================================================== */}
+          {tab === "forgot" && (
+            step === 1 ? (
+              <form onSubmit={handleForgotRequest} className="space-y-4 text-xs animate-fade-in-up">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Registered Email</label>
+                  <input
+                    type="email" required
+                    value={email} onChange={e=>setEmail(e.target.value)}
+                    placeholder="e.g. pooja@sharda.com"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                  />
+                </div>
+                <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-brand-blue bg-brand-yellow hover:bg-amber-400 shadow-md shadow-brand-yellow/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
+                  {loading ? "SENDING OTP..." : "SEND RECOVERY CODE"}
+                </button>
+                <button type="button" onClick={() => { setTab("signin"); setStep(1); }} className="w-full text-center text-[10px] text-slate-400 hover:text-slate-800 font-bold uppercase tracking-wider transition duration-200 cursor-pointer">← Back to Sign In</button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-4 text-xs animate-fade-in-up">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Enter 6-Digit Email OTP</label>
+                    <input
+                      type="text" required maxLength={6}
+                      value={otp} onChange={e=>setOtp(e.target.value)}
+                      placeholder="------"
+                      className="w-full px-4 py-2.5 text-center font-mono text-lg tracking-widest rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Enter New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"} required
+                        value={newPassword} onChange={e=>setNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 focus:outline-none select-none cursor-pointer"
+                      >
+                        {showPassword ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.815 7.815 3 3m-3-3a8.2 8.2 0 0 1-4.59 1.59M12.013 9.014a3 3 0 1 0 4.28 4.28" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
+                  {loading ? "RESETTING..." : "RESET & SIGN IN"}
+                </button>
+
+                {/* Resend Code for forgot password */}
+                <div className="text-center">
+                  {resendTimer > 0 ? (
+                    <p className="text-[10px] text-slate-400 font-semibold">
+                      Resend code in <span className="text-brand-yellow font-bold">{resendTimer}s</span>
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={async () => {
+                        setLoading(true); setError(""); setMessage("");
+                        try {
+                          const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email }),
+                          });
+                          const data = await res.json();
+                          if (data.success) { setMessage("A new recovery code has been sent to your email."); startResendTimer(); }
+                          else setError(data.message || "Failed to resend code.");
+                        } catch { setError("Connection error."); }
+                        finally { setLoading(false); }
+                      }}
+                      className="text-[10px] font-bold text-brand-blue hover:text-blue-800 underline underline-offset-2 transition cursor-pointer uppercase tracking-wider"
+                    >
+                      Resend Code
+                    </button>
+                  )}
+                </div>
+              </form>
+            )
+          )}
+
         </div>
 
       </div>
+
     </div>
   );
 }
