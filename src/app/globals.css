@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 /* ═══════════════════════════════════════════════════════════════
    SHARDA ACADEMY — PREMIUM DESIGN SYSTEM
    Brand Colors:
@@ -19,8 +21,8 @@
 
 /* ── Tailwind Theme Tokens ── */
 @theme {
-  --font-sans: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  --font-display: 'Outfit', 'Inter', sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
 
   --color-brand-navy:   #0a1835;
@@ -57,12 +59,50 @@ html {
   scroll-behavior: smooth;
 }
 
+:root {
+  --background: #faf9f6;
+  --foreground: #0f1a30;
+  --card-bg: #ffffff;
+  --card-border: rgba(10, 24, 53, 0.08);
+  --text-primary: #0f1a30;
+  --text-secondary: #5e6675;
+  --text-tertiary: #94a3b8;
+  --dot-color: rgba(10,24,53,0.06);
+  --input-bg: #ffffff;
+  --input-border: rgba(10, 24, 53, 0.12);
+  --input-text: #0f1a30;
+  --header-bg: #0a1835;
+  --header-text: #ffffff;
+  --sidebar-bg: #0a1835;
+  --sidebar-text: #ffffff;
+  --hover-bg: rgba(10, 24, 53, 0.05);
+}
+
+.dark {
+  --background: #0B1120;
+  --foreground: #F9FAFB;
+  --card-bg: #131C2E;
+  --card-border: #243145;
+  --text-primary: #F9FAFB;
+  --text-secondary: #CBD5E1;
+  --text-tertiary: #94A3B8;
+  --dot-color: rgba(255, 255, 255, 0.03);
+  --input-bg: #162033;
+  --input-border: #2A3950;
+  --input-text: #F9FAFB;
+  --header-bg: #081226;
+  --header-text: #F9FAFB;
+  --sidebar-bg: #081226;
+  --sidebar-text: #F9FAFB;
+  --hover-bg: #1E293B;
+}
+
 body {
   margin: 0;
   padding: 0;
-  background-color: #f8f7f4;
-  color: #111827;
-  font-family: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
   font-weight: 400;
   line-height: 1.6;
@@ -73,10 +113,10 @@ body {
 
 /* ── Typography Scale ── */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   line-height: 1.25;
-  color: #111827;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -86,39 +126,39 @@ h3 { font-size: 1.25rem; font-weight: 700; }
 h4 { font-size: 1rem;   font-weight: 700; }
 h5 { font-size: 0.875rem; font-weight: 700; }
 
-p  { margin: 0; color: #374151; }
+p  { margin: 0; color: var(--text-secondary); }
 
 label {
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   letter-spacing: 0.025em;
 }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: #f1af3c; }
 
 /* ── Dot background texture ── */
 .dotbg {
-  background-image: radial-gradient(rgba(10,24,53,0.04) 1px, transparent 1px);
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
   background-size: 24px 24px;
   background-attachment: local;
 }
 
 /* ── Sidebar (Navy) ── */
 aside {
-  background: #0a1835 !important;
-  color: #ffffff !important;
-  border-right: 1px solid rgba(255,255,255,0.07) !important;
+  background: var(--sidebar-bg) !important;
+  color: var(--sidebar-text) !important;
+  border-right: 1px solid var(--card-border) !important;
 }
 
 aside h1 {
   color: #ffffff !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 0.85rem !important;
   font-weight: 800 !important;
   letter-spacing: 0.1em !important;
@@ -131,38 +171,20 @@ aside p {
   letter-spacing: 0.12em !important;
 }
 
-aside nav button {
-  font-family: 'Inter', sans-serif !important;
-  font-size: 0.85rem !important;
-  font-weight: 600 !important;
-  color: rgba(255,255,255,0.7) !important;
-  letter-spacing: 0.01em;
-  transition: all 0.2s ease !important;
-}
 
-aside nav button:hover {
-  color: #f1af3c !important;
-  background: rgba(255,255,255,0.06) !important;
-}
-
-aside nav button[class*="bg-brand-yellow"] {
-  background: #f1af3c !important;
-  color: #0a1835 !important;
-  font-weight: 850 !important;
-}
 
 /* ── Top Header (Navy) ── */
 header {
-  background: #0a1835 !important;
-  color: #ffffff !important;
+  background: var(--header-bg) !important;
+  color: var(--header-text) !important;
   border-bottom: 2px solid #f1af3c !important;
 }
 
 header h2 {
-  font-family: 'Outfit', sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 1rem !important;
   font-weight: 800 !important;
-  color: #ffffff !important;
+  color: var(--header-text) !important;
   letter-spacing: 0.02em !important;
 }
 
@@ -179,11 +201,12 @@ header button:not([class*="bg-"]):hover {
 
 /* ── Cards ── */
 .premium-glass-card {
-  background: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
   border-radius: 16px !important;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04) !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  color: var(--text-primary) !important;
 }
 
 .premium-glass-card:hover {
@@ -191,13 +214,74 @@ header button:not([class*="bg-"]):hover {
   box-shadow: 0 4px 20px rgba(241,175,60,0.1), 0 1px 4px rgba(0,0,0,0.04) !important;
 }
 
+.dark div[class*="bg-white"],
+.dark .bg-white {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--card-border) !important;
+}
+
+.dark .text-brand-navy {
+  color: var(--text-primary) !important;
+}
+
+.dark svg.text-brand-navy {
+  stroke: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark .text-\[\#0a1835\] {
+  color: var(--text-primary) !important;
+}
+
+.dark svg.text-\[\#0a1835\] {
+  stroke: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700,
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-slate-400,
+.dark .text-gray-600,
+.dark .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .text-slate-300,
+.dark .text-gray-400 {
+  color: var(--text-tertiary) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--input-bg) !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: var(--card-border) !important;
+}
+
 /* ── Inputs ── */
 input, select, textarea {
   font-family: 'Inter', sans-serif !important;
   font-size: 0.875rem !important;
-  color: #111827 !important;
-  background: #ffffff !important;
-  border: 1.5px solid #e5e7eb !important;
+  color: var(--input-text) !important;
+  background: var(--input-bg) !important;
+  border: 1.5px solid var(--input-border) !important;
   border-radius: 10px !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
@@ -209,7 +293,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 input::placeholder, textarea::placeholder {
-  color: #9ca3af !important;
+  color: var(--text-tertiary) !important;
   font-weight: 400 !important;
 }
 
@@ -235,7 +319,7 @@ input::placeholder, textarea::placeholder {
 }
 
 /* ── Brand utility classes ── */
-.bg-brand-beige { background-color: #f8f7f4 !important; }
+.bg-brand-beige { background-color: var(--background) !important; }
 
 /* ── Animations ── */
 @keyframes fadeInUp {
@@ -304,4 +388,68 @@ input::placeholder, textarea::placeholder {
   z-index: 0;
   opacity: 0.018;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.theme-toggle-btn {
+  transition: all 0.3s ease !important;
+}
+
+.theme-toggle-btn:hover {
+  border-color: #F4B63D !important;
+  box-shadow: 0 0 10px rgba(244, 182, 61, 0.3) !important;
+}
+
+.sidebar-student-name {
+  color: #ffffff !important;
+}
+
+/* ── Premium High-Contrast Theme Overrides (Student Dashboard) ── */
+
+.welcome-subtitle-val {
+  color: #0a1835 !important;
+  font-weight: 700 !important;
+}
+.dark .welcome-subtitle-val {
+  color: #f1af3c !important;
+}
+
+.metric-value {
+  color: #0a1835 !important;
+}
+.dark .metric-value {
+  color: #ffffff !important;
+}
+
+.metric-icon {
+  color: #0a1835 !important;
+  stroke: #0a1835 !important;
+}
+.dark .metric-icon {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.metric-icon-bg {
+  background-color: rgba(10, 24, 53, 0.05) !important;
+  border: 1px solid rgba(10, 24, 53, 0.1) !important;
+}
+.dark .metric-icon-bg {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.dashboard-section-heading {
+  color: #0a1835 !important;
+}
+.dark .dashboard-section-heading {
+  color: #ffffff !important;
+}
+
+.dashboard-section-icon {
+  color: #0a1835 !important;
+  stroke: #0a1835 !important;
+}
+.dark .dashboard-section-icon {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }

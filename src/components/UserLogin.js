@@ -136,26 +136,98 @@ export default function UserLogin({ onAuthSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-brand-beige dotbg noise">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-brand-beige dotbg noise overflow-x-hidden relative">
       
-      <div className="w-full max-w-md relative z-10">
+      {/* 🎨 Left Panel: High-End Showcase (Hidden on Mobile) */}
+      <div className="hidden lg:flex lg:col-span-7 bg-[#060f22] text-white flex-col justify-between p-12 relative overflow-hidden border-r border-white/5">
+        {/* Slow-rotating background glow */}
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-gradient-to-br from-brand-yellow/10 to-amber-500/5 rounded-full blur-[140px] pointer-events-none animate-pulse-glow"></div>
+        <div className="absolute -bottom-40 -right-40 w-[650px] h-[650px] bg-gradient-to-tr from-brand-blue/30 to-brand-yellow/5 rounded-full blur-[160px] pointer-events-none"></div>
+
+        {/* Top Branding */}
+        <div className="flex items-center gap-3 relative z-10">
+          <img src="/logo.png" alt="Sharda Academy Logo" className="w-12 h-12 object-contain"
+            onError={(e) => { e.target.style.display = 'none'; }} />
+          <div className="text-left">
+            <h2 className="text-lg font-black text-brand-yellow tracking-widest uppercase leading-none">SHARDA ACADEMY</h2>
+            <p className="text-[9px] font-bold text-slate-450 tracking-widest uppercase leading-none mt-1.5">Mankhurd - 43</p>
+          </div>
+        </div>
+
+        {/* Central Showcase Content */}
+        <div className="my-auto space-y-8 relative z-10 max-w-lg text-left">
+          <div className="space-y-3">
+            <span className="text-[10px] font-extrabold tracking-widest uppercase text-brand-yellow bg-brand-yellow/10 border border-brand-yellow/20 px-3 py-1 rounded-lg inline-block">
+              Student Portal Secure Gateway
+            </span>
+            <h1 className="text-3xl lg:text-4xl font-black tracking-tight leading-tight text-white font-display">
+              Access Your <span className="bg-gradient-to-r from-brand-yellow to-amber-400 bg-clip-text text-transparent">Academic Destiny</span> in Real-Time
+            </h1>
+            <p className="text-xs text-slate-300 leading-relaxed font-semibold">
+              Sharda Academy's SAMS Portal connects students directly with live timetable routines, biometric check-in trackers, fee ledgers, and dynamic examination performance matrices.
+            </p>
+          </div>
+
+          {/* Frosted Showcase Highlight Panel */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-2xl space-y-4">
+            <h4 className="text-xs font-black uppercase tracking-wider text-brand-yellow">Portal Synchronized Features:</h4>
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="flex items-start gap-2.5">
+                <span className="text-brand-yellow text-base font-extrabold mt-0.5">🔒</span>
+                <div>
+                  <h5 className="font-bold text-white text-[11px]">Multi-Role Gateway</h5>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Secure session tokening</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="text-brand-yellow text-base font-extrabold mt-0.5">📶</span>
+                <div>
+                  <h5 className="font-bold text-white text-[11px]">Biometric Attendance</h5>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Real-time hardware tap sync</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="text-brand-yellow text-base font-extrabold mt-0.5">📊</span>
+                <div>
+                  <h5 className="font-bold text-white text-[11px]">Performance Tracker</h5>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Mock results & batch rankings</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="text-brand-yellow text-base font-extrabold mt-0.5">🪙</span>
+                <div>
+                  <h5 className="font-bold text-white text-[11px]">Tuition Invoices</h5>
+                  <p className="text-[10px] text-slate-400 mt-0.5">UPI checkout & receipts download</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Brand Label */}
+        <div className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase relative z-10 text-left">
+          Sharda Academy SAMS • Established 2026
+        </div>
+      </div>
+
+      {/* 📝 Right Panel: Sign-in Section */}
+      <div className="col-span-12 lg:col-span-5 flex flex-col justify-center items-center p-6 sm:p-12 relative z-10">
         
-        {/* Logo & branding header (Outside/Above the Card) */}
-        <div className="flex flex-col items-center mb-6 text-center">
-          <img src="/logo.png" alt="Sharda Academy Logo" className="w-16 h-16 mb-2"
+        {/* Mobile Header Branding (Shown only on small screens) */}
+        <div className="flex flex-col items-center mb-6 text-center lg:hidden">
+          <img src="/logo.png" alt="Sharda Academy Logo" className="w-14 h-14 mb-2"
             onError={(e) => { e.target.style.display = 'none'; }} style={{ objectFit: "contain" }} />
-          <h2 className="text-xl font-black text-brand-blue uppercase tracking-tight">SHARDA ACADEMY</h2>
+          <h2 className="text-lg font-black text-brand-blue uppercase tracking-tight">SHARDA ACADEMY</h2>
           <p className="text-[9px] font-bold text-brand-yellow uppercase tracking-widest mt-0.5">Student Portal Gateway</p>
         </div>
 
         {/* Unified White Card with Gold highlight */}
         <div className="w-full max-w-md p-8 rounded-2xl bg-white border border-brand-yellow/30 shadow-2xl space-y-6">
-
           {/* Header Label */}
           {tab !== "forgot" && (
-            <div className="text-center pb-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-brand-blue">Sign In To Student Portal</h3>
-              <p className="text-[9px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Enrolled Academy Students Only</p>
+            <div className="text-center pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-black uppercase tracking-wider text-brand-blue">Sign In To Student Portal</h3>
+              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Enrolled Academy Students Only</p>
             </div>
           )}
 
@@ -183,7 +255,7 @@ export default function UserLogin({ onAuthSuccess }) {
           {tab === "signin" && (
             <form onSubmit={handleSignIn} className="space-y-4 text-xs animate-fade-in-up">
               <div className="space-y-4">
-                <div>
+                <div className="text-left">
                   <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Registered Email</label>
                   <input
                     type="email" required
@@ -192,7 +264,7 @@ export default function UserLogin({ onAuthSuccess }) {
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
                   />
                 </div>
-                <div>
+                <div className="text-left">
                   <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Password</label>
                   <div className="relative">
                     <input
@@ -241,11 +313,11 @@ export default function UserLogin({ onAuthSuccess }) {
           {tab === "forgot" && (
             step === 1 ? (
               <form onSubmit={handleForgotRequest} className="space-y-4 text-xs animate-fade-in-up">
-                <div className="text-center pb-2">
+                <div className="text-center pb-2 border-b border-slate-100">
                   <h3 className="text-xs font-black uppercase tracking-wider text-brand-blue">Reset Your Password</h3>
-                  <p className="text-[9px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Enter your registered email</p>
+                  <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Enter your registered email</p>
                 </div>
-                <div>
+                <div className="text-left">
                   <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Registered Email</label>
                   <input
                     type="email" required
@@ -261,12 +333,12 @@ export default function UserLogin({ onAuthSuccess }) {
               </form>
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-4 text-xs animate-fade-in-up">
-                <div className="text-center pb-2">
+                <div className="text-center pb-2 border-b border-slate-100">
                   <h3 className="text-xs font-black uppercase tracking-wider text-brand-blue">Enter Recovery Code</h3>
-                  <p className="text-[9px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Check your email inbox</p>
+                  <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Check your email inbox</p>
                 </div>
                 <div className="space-y-4">
-                  <div>
+                  <div className="text-left">
                     <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Enter 6-Digit Email OTP</label>
                     <input
                       type="text" required maxLength={6}
@@ -275,7 +347,7 @@ export default function UserLogin({ onAuthSuccess }) {
                       className="w-full px-4 py-2.5 text-center font-mono text-lg tracking-widest rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
                     />
                   </div>
-                  <div>
+                  <div className="text-left">
                     <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Enter New Password</label>
                     <div className="relative">
                       <input
