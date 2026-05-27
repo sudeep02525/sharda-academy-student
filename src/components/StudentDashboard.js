@@ -439,8 +439,12 @@ export default function StudentDashboard({ token, onLogout }) {
         <div className="p-4 border-t border-white/8 space-y-3 bg-[#030814]/30">
           <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-9 h-9 rounded-full bg-brand-yellow text-brand-blue flex items-center justify-center font-black text-sm flex-shrink-0">
-                {student?.name?.[0]?.toUpperCase()}
+              <div className="w-9 h-9 rounded-full bg-brand-yellow text-brand-blue flex items-center justify-center font-black text-sm flex-shrink-0 overflow-hidden">
+                {student?.profilePhoto ? (
+                  <img src={student.profilePhoto.startsWith('http') || student.profilePhoto.startsWith('data:') ? student.profilePhoto : `${API_BASE_URL}${student.profilePhoto}`} alt={student.name} className="w-full h-full object-cover" />
+                ) : (
+                  student?.name?.[0]?.toUpperCase()
+                )}
               </div>
               <div className="text-left min-w-0">
                 <h5 className="text-xs font-bold text-white truncate leading-none">{student?.name}</h5>
@@ -1919,7 +1923,11 @@ export default function StudentDashboard({ token, onLogout }) {
                 
                 <div className="flex items-center gap-5 text-left relative z-10 flex-grow">
                   <div className="w-20 h-20 rounded-2xl bg-brand-yellow text-slate-900 border-2 border-brand-navy flex items-center justify-center font-display text-3xl font-extrabold shadow-lg relative flex-shrink-0">
-                    {student?.name?.[0]?.toUpperCase()}
+                    {student?.profilePhoto ? (
+                      <img src={student.profilePhoto.startsWith('http') || student.profilePhoto.startsWith('data:') ? student.profilePhoto : `${API_BASE_URL}${student.profilePhoto}`} alt={student.name} className="w-full h-full object-cover rounded-[14px]" />
+                    ) : (
+                      student?.name?.[0]?.toUpperCase()
+                    )}
                     <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white"></span>
                   </div>
                   <div className="space-y-1.5">
