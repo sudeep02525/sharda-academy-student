@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Student Dashboard | Sharda Academy SAMS Console",
+  title: "Student Dashboard | Sharda Academy SAMS Portal",
   description: "Official student performance and biometric check-in tracking dashboard of Sharda Academy.",
   icons: {
     icon: "/logo_cropped.png",

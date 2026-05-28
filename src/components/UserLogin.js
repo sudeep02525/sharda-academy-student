@@ -65,7 +65,6 @@ export default function UserLogin({ onAuthSuccess }) {
         setError(data.message || "Invalid email address or password.");
       }
     } catch (err) {
-      console.error(err);
       setError("Unable to connect to SAMS backend server.");
     } finally {
       setLoading(false);
@@ -96,7 +95,6 @@ export default function UserLogin({ onAuthSuccess }) {
         setError(data.message || "Failed to request recovery code.");
       }
     } catch (err) {
-      console.error(err);
       setError("Connection failed.");
     } finally {
       setLoading(false);
@@ -128,7 +126,6 @@ export default function UserLogin({ onAuthSuccess }) {
         setError(data.message || "Failed to reset password.");
       }
     } catch (err) {
-      console.error(err);
       setError("Reset failed.");
     } finally {
       setLoading(false);
@@ -139,79 +136,116 @@ export default function UserLogin({ onAuthSuccess }) {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-brand-beige dotbg noise overflow-x-hidden relative">
       
       {/* 🎨 Left Panel: High-End Showcase (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:col-span-7 bg-[#060f22] text-white flex-col justify-between p-12 relative overflow-hidden border-r border-white/5">
-        {/* Slow-rotating background glow */}
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-gradient-to-br from-brand-yellow/10 to-amber-500/5 rounded-full blur-[140px] pointer-events-none animate-pulse-glow"></div>
-        <div className="absolute -bottom-40 -right-40 w-[650px] h-[650px] bg-gradient-to-tr from-brand-blue/30 to-brand-yellow/5 rounded-full blur-[160px] pointer-events-none"></div>
+      <div className="hidden lg:flex lg:col-span-6 bg-[#060f22] text-white flex-col justify-between p-12 relative overflow-hidden border-r border-white/5">
+        {/* Slow-rotating background glow using absolute inline blur filters for cross-browser premium aesthetics */}
+        <div 
+          className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-gradient-to-br from-brand-gold/15 to-amber-500/10 rounded-full pointer-events-none animate-pulse-glow"
+          style={{ filter: "blur(120px)" }}
+        ></div>
+        <div 
+          className="absolute -bottom-40 -right-40 w-[650px] h-[650px] bg-gradient-to-tr from-brand-navy2/40 to-brand-gold/10 rounded-full pointer-events-none"
+          style={{ filter: "blur(140px)" }}
+        ></div>
 
-        {/* Top Branding */}
+        {/* Top Branding - Kept original main logo with explicit div/span to bypass global overrides */}
         <div className="flex items-center gap-3 relative z-10">
           <img src="/logo.png" alt="Sharda Academy Logo" className="w-12 h-12 object-contain"
             onError={(e) => { e.target.style.display = 'none'; }} />
           <div className="text-left">
-            <h2 className="text-lg font-black text-brand-yellow tracking-widest uppercase leading-none">SHARDA ACADEMY</h2>
-            <p className="text-[9px] font-bold text-slate-450 tracking-widest uppercase leading-none mt-1.5">Mankhurd - 43</p>
+            <div 
+              className="text-lg font-black tracking-widest uppercase leading-none"
+              style={{ color: "#f1af3c" }}
+            >
+              SHARDA ACADEMY
+            </div>
+            <span 
+              className="text-[9px] font-bold tracking-widest uppercase leading-none mt-1.5 block"
+              style={{ color: "rgba(255, 255, 255, 0.6)" }}
+            >
+              Student SAMS Platform
+            </span>
           </div>
         </div>
 
-        {/* Central Showcase Content */}
+        {/* Central Showcase Content - Bypassing global header/p overrides */}
         <div className="my-auto space-y-8 relative z-10 max-w-lg text-left">
           <div className="space-y-3">
-            <span className="text-[10px] font-extrabold tracking-widest uppercase text-brand-yellow bg-brand-yellow/10 border border-brand-yellow/20 px-3 py-1 rounded-lg inline-block">
-              Student Portal Secure Gateway
+            <span 
+              className="text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-lg inline-block"
+              style={{ 
+                color: "#f1af3c", 
+                backgroundColor: "rgba(241, 175, 60, 0.1)", 
+                borderColor: "rgba(241, 175, 60, 0.2)", 
+                borderWidth: "1px", 
+                borderStyle: "solid" 
+              }}
+            >
+              Student Portal Gateway
             </span>
-            <h1 className="text-3xl lg:text-4xl font-black tracking-tight leading-tight text-white font-display">
-              Access Your <span className="bg-gradient-to-r from-brand-yellow to-amber-400 bg-clip-text text-transparent">Academic Destiny</span> in Real-Time
-            </h1>
-            <p className="text-xs text-slate-300 leading-relaxed font-semibold">
+            <div 
+              className="text-3xl lg:text-4xl font-black tracking-tight leading-tight font-display"
+              style={{ color: "#ffffff" }}
+            >
+              Access Your <span className="bg-gradient-to-r from-brand-gold to-amber-400 bg-clip-text text-transparent" style={{ color: "transparent" }}>Academic Destiny</span> in Real-Time
+            </div>
+            <div 
+              className="text-xs leading-relaxed font-semibold"
+              style={{ color: "rgba(255, 255, 255, 0.85)" }}
+            >
               Sharda Academy's SAMS Portal connects students directly with live timetable routines, biometric check-in trackers, fee ledgers, and dynamic examination performance matrices.
-            </p>
+            </div>
           </div>
 
           {/* Frosted Showcase Highlight Panel */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-2xl space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-wider text-brand-yellow">Portal Synchronized Features:</h4>
+            <div className="text-xs font-black uppercase tracking-wider" style={{ color: "#f1af3c" }}>Portal Synchronized Features:</div>
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div className="flex items-start gap-2.5">
-                <span className="text-brand-yellow text-base font-extrabold mt-0.5">🔒</span>
+                <svg className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: "#f1af3c" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
                 <div>
-                  <h5 className="font-bold text-white text-[11px]">Multi-Role Gateway</h5>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Secure session tokening</p>
+                  <div className="font-bold text-[11px]" style={{ color: "#ffffff" }}>Multi-Role Gateway</div>
+                  <span className="text-[10px] mt-0.5 block" style={{ color: "rgba(255, 255, 255, 0.7)" }}>Secure session tokening</span>
                 </div>
               </div>
               <div className="flex items-start gap-2.5">
-                <span className="text-brand-yellow text-base font-extrabold mt-0.5">📶</span>
+                <svg className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: "#f1af3c" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.864 4.243A7.5 7.5 0 0119.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 004.5 10.5a14.805 14.805 0 001.586 6.74M15.01 1.777a8.962 8.962 0 013.74 2.235M8.457 20.278a14.887 14.887 0 01-2.715-3.328M11.662 2.011a8.968 8.968 0 013.2 1.53m-7.817 14.3a14.852 14.852 0 01-1.047-3.473M10.5 8.5a1.5 1.5 0 113 0v4.882c0 .866-.491 1.652-1.258 2.002L10.5 16.5M9 10.5a3 3 0 016 0v2.882c0 .577.327 1.101.839 1.335l.661.303" />
+                </svg>
                 <div>
-                  <h5 className="font-bold text-white text-[11px]">Biometric Attendance</h5>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Real-time hardware tap sync</p>
+                  <div className="font-bold text-[11px]" style={{ color: "#ffffff" }}>Biometric Attendance</div>
+                  <span className="text-[10px] mt-0.5 block" style={{ color: "rgba(255, 255, 255, 0.7)" }}>Real-time hardware tap sync</span>
                 </div>
               </div>
               <div className="flex items-start gap-2.5">
-                <span className="text-brand-yellow text-base font-extrabold mt-0.5">📊</span>
+                <svg className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: "#f1af3c" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v5.25c0 .621-.504 1.125-1.125 1.125h-2.25A1.125 1.125 0 013 18.375v-5.25zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-9.75zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v14.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                </svg>
                 <div>
-                  <h5 className="font-bold text-white text-[11px]">Performance Tracker</h5>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Mock results & batch rankings</p>
+                  <div className="font-bold text-[11px]" style={{ color: "#ffffff" }}>Performance Tracker</div>
+                  <span className="text-[10px] mt-0.5 block" style={{ color: "rgba(255, 255, 255, 0.7)" }}>Mock results & batch rankings</span>
                 </div>
               </div>
               <div className="flex items-start gap-2.5">
-                <span className="text-brand-yellow text-base font-extrabold mt-0.5">🪙</span>
+                <svg className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: "#f1af3c" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5h16.5a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V6a1.5 1.5 0 011.5-1.5zM3 10.5h18" />
+                </svg>
                 <div>
-                  <h5 className="font-bold text-white text-[11px]">Tuition Invoices</h5>
-                  <p className="text-[10px] text-slate-400 mt-0.5">UPI checkout & receipts download</p>
+                  <div className="font-bold text-[11px]" style={{ color: "#ffffff" }}>Tuition Invoices</div>
+                  <span className="text-[10px] mt-0.5 block" style={{ color: "rgba(255, 255, 255, 0.7)" }}>UPI checkout & receipts download</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer Brand Label */}
-        <div className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase relative z-10 text-left">
-          Sharda Academy SAMS • Established 2026
-        </div>
+        {/* Footer Brand Label removed */}
+        <div className="h-0 relative z-10 pointer-events-none"></div>
       </div>
 
       {/* 📝 Right Panel: Sign-in Section */}
-      <div className="col-span-12 lg:col-span-5 flex flex-col justify-center items-center p-6 sm:p-12 relative z-10">
+      <div className="col-span-12 lg:col-span-6 flex flex-col justify-center items-center p-6 sm:p-12 relative z-10">
         
         {/* Mobile Header Branding (Shown only on small screens) */}
         <div className="flex flex-col items-center mb-6 text-center lg:hidden">
@@ -221,13 +255,17 @@ export default function UserLogin({ onAuthSuccess }) {
           <p className="text-[9px] font-bold text-brand-yellow uppercase tracking-widest mt-0.5">Student Portal Gateway</p>
         </div>
 
-        {/* Unified White Card with Gold highlight */}
-        <div className="w-full max-w-md p-8 rounded-2xl bg-white border border-brand-yellow/30 shadow-2xl space-y-6">
-          {/* Header Label */}
+        {/* Unified White Card matching Admin Portal exactly */}
+        <div className="w-full max-w-md p-8 rounded-2xl bg-white border border-gold/30 shadow-2xl space-y-6">
+          {/* Header Label - Synced with Admin sizes and bypassing h3 global overrides */}
           {tab !== "forgot" && (
             <div className="text-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase tracking-wider text-brand-blue">Sign In To Student Portal</h3>
-              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Enrolled Academy Students Only</p>
+              <div className="text-sm font-black uppercase tracking-wider text-navy">
+                Sign In To Student Portal
+              </div>
+              <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+                Enrolled Academy Students Only
+              </div>
             </div>
           )}
 
@@ -261,7 +299,7 @@ export default function UserLogin({ onAuthSuccess }) {
                     type="email" required
                     value={email} onChange={e=>setEmail(e.target.value)}
                     placeholder="e.g. pooja@sharda.com"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#f1af3c] focus:ring-1 focus:ring-[#f1af3c]/50 transition-all"
                   />
                 </div>
                 <div className="text-left">
@@ -271,7 +309,7 @@ export default function UserLogin({ onAuthSuccess }) {
                       type={showPassword ? "text" : "password"} required
                       value={password} onChange={e=>setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                      className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#f1af3c] focus:ring-1 focus:ring-[#f1af3c]/50 transition-all"
                     />
                     <button
                       type="button"
@@ -293,14 +331,22 @@ export default function UserLogin({ onAuthSuccess }) {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-brand-blue bg-brand-yellow hover:bg-amber-400 shadow-md shadow-brand-yellow/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
+              <button 
+                type="submit" 
+                disabled={loading} 
+                className="w-full py-3 rounded-xl text-xs font-extrabold uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2"
+                style={{ color: "#0a1835", backgroundColor: "#f1af3c", boxShadow: "0 4px 6px -1px rgba(241, 175, 60, 0.2), 0 2px 4px -1px rgba(241, 175, 60, 0.1)" }}
+              >
                 {loading ? "AUTHENTICATING..." : "SIGN IN TO PORTAL"}
               </button>
 
               <button
                 type="button"
                 onClick={() => { setTab("forgot"); setStep(1); setError(""); setMessage(""); }}
-                className="block w-full text-center text-[10px] font-bold text-slate-500 hover:text-brand-blue transition uppercase tracking-wider cursor-pointer"
+                className="block w-full text-center text-[10px] font-bold text-slate-500 transition uppercase tracking-wider cursor-pointer"
+                style={{ transition: "color 0.2s" }}
+                onMouseEnter={(e) => { e.target.style.color = "#0a1835"; }}
+                onMouseLeave={(e) => { e.target.style.color = "#6b7280"; }}
               >
                 Forgot Password?
               </button>
@@ -314,8 +360,8 @@ export default function UserLogin({ onAuthSuccess }) {
             step === 1 ? (
               <form onSubmit={handleForgotRequest} className="space-y-4 text-xs animate-fade-in-up">
                 <div className="text-center pb-2 border-b border-slate-100">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-brand-blue">Reset Your Password</h3>
-                  <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Enter your registered email</p>
+                  <div className="text-xs font-black uppercase tracking-wider text-navy">Reset Your Password</div>
+                  <div className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Enter your registered email</div>
                 </div>
                 <div className="text-left">
                   <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5">Registered Email</label>
@@ -323,19 +369,30 @@ export default function UserLogin({ onAuthSuccess }) {
                     type="email" required
                     value={email} onChange={e=>setEmail(e.target.value)}
                     placeholder="e.g. pooja@sharda.com"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#f1af3c] focus:ring-1 focus:ring-[#f1af3c]/50 transition-all"
                   />
                 </div>
-                <button type="submit" disabled={loading} className="w-full py-3 rounded-xl text-xs font-extrabold text-brand-blue bg-brand-yellow hover:bg-amber-400 shadow-md shadow-brand-yellow/20 uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2">
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="w-full py-3 rounded-xl text-xs font-extrabold uppercase tracking-widest transition-all hover:-translate-y-0.5 active:scale-95 duration-200 cursor-pointer mt-2"
+                  style={{ color: "#0a1835", backgroundColor: "#f1af3c", boxShadow: "0 4px 6px -1px rgba(241, 175, 60, 0.2), 0 2px 4px -1px rgba(241, 175, 60, 0.1)" }}
+                >
                   {loading ? "SENDING OTP..." : "SEND RECOVERY CODE"}
                 </button>
-                <button type="button" onClick={() => { setTab("signin"); setStep(1); setError(""); setMessage(""); }} className="w-full text-center text-[10px] text-slate-400 hover:text-slate-800 font-bold uppercase tracking-wider transition duration-200 cursor-pointer">← Back to Sign In</button>
+                <button 
+                  type="button" 
+                  onClick={() => { setTab("signin"); setStep(1); setError(""); setMessage(""); }} 
+                  className="w-full text-center text-[10px] text-slate-450 hover:text-slate-800 font-bold uppercase tracking-wider transition duration-200 cursor-pointer mt-2"
+                >
+                  ← Back to Sign In
+                </button>
               </form>
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-4 text-xs animate-fade-in-up">
                 <div className="text-center pb-2 border-b border-slate-100">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-brand-blue">Enter Recovery Code</h3>
-                  <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Check your email inbox</p>
+                  <div className="text-xs font-black uppercase tracking-wider text-navy">Enter Recovery Code</div>
+                  <div className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Check your email inbox</div>
                 </div>
                 <div className="space-y-4">
                   <div className="text-left">
@@ -344,7 +401,7 @@ export default function UserLogin({ onAuthSuccess }) {
                       type="text" required maxLength={6}
                       value={otp} onChange={e=>setOtp(e.target.value)}
                       placeholder="------"
-                      className="w-full px-4 py-2.5 text-center font-mono text-lg tracking-widest rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                      className="w-full px-4 py-2.5 text-center font-mono text-lg tracking-widest rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#f1af3c] focus:ring-1 focus:ring-[#f1af3c]/50 transition-all"
                     />
                   </div>
                   <div className="text-left">
@@ -354,7 +411,7 @@ export default function UserLogin({ onAuthSuccess }) {
                         type={showPassword ? "text" : "password"} required
                         value={newPassword} onChange={e=>setNewPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow/50 transition-all"
+                        className="w-full px-4 py-2.5 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#f1af3c] focus:ring-1 focus:ring-[#f1af3c]/50 transition-all"
                       />
                       <button
                         type="button"
