@@ -162,9 +162,40 @@ export default function StudentDashboard({ token, onLogout }) {
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-refresh data when the active tab changes
   useEffect(() => {
+    if (token) {
+      fetchData(true); // Silent update on tab change
+    }
+  }, [activeTab, token]);
+
+  // Polling and visibility change listeners
+  useEffect(() => {
+    if (!token) return;
+
+    // Fetch initially
     fetchData();
-  }, []);
+
+    // Set up polling interval (every 10 seconds)
+    const intervalId = setInterval(() => {
+      fetchData(true); // silent background fetch
+    }, 10000);
+
+    // Fetch on window focus / visibility change (tab switch back)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchData(true);
+      }
+    };
+    window.addEventListener("focus", handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [token]);
 
   const handleDownload = (filename, fileData) => {
     if (!fileData) {
@@ -264,8 +295,9 @@ export default function StudentDashboard({ token, onLogout }) {
     printWindow.document.close();
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (isSilent = false) => {
+    if (!token) return;
+    if (!isSilent) setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/sams/student/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -323,12 +355,12 @@ export default function StudentDashboard({ token, onLogout }) {
           : []
         );
       } else {
-        setError(resData.message || "Failed to load student portfolio.");
+        if (!isSilent) setError(resData.message || "Failed to load student portfolio.");
       }
     } catch (err) {
-      setError("Unable to sync details with SAMS backend.");
+      if (!isSilent) setError("Unable to sync details with SAMS backend.");
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
@@ -524,27 +556,27 @@ export default function StudentDashboard({ token, onLogout }) {
         ></div>
         
         {/* Brand header */}
-        <div className="p-5 flex items-center justify-between border-b border-white/8 relative z-10">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-            <div className="text-left">
-              <h1 className="text-sm font-extrabold text-white uppercase tracking-wide leading-none">SHARDA ACADEMY</h1>
-              <p className="text-[10px] font-bold text-brand-yellow uppercase tracking-widest leading-none mt-1.5">STUDENT PORTAL</p>
+        <div className="px-4 py-4 border-b border-white/8 relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} />
+            <div className="text-left min-w-0">
+              <span className="block text-[12.5px] font-black text-white uppercase tracking-wider leading-none whitespace-nowrap">SHARDA ACADEMY</span>
+              <span className="block text-[9px] font-bold text-brand-yellow uppercase tracking-widest leading-none mt-1 whitespace-nowrap">STUDENT PORTAL</span>
             </div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-1.5 rounded-lg bg-white/5 text-white hover:bg-white/10 hover:text-brand-yellow cursor-pointer"
+            className="md:hidden flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 hover:text-brand-yellow cursor-pointer ml-2"
             aria-label="Close Menu"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4.5 h-4.5">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Sidebar Nav catalog */}
-        <nav className="p-3 flex-grow space-y-1.5 overflow-y-auto relative z-10">
+        <nav className="p-3 flex-grow space-y-1.5 overflow-y-auto no-scrollbar relative z-10">
           {MENU_CATALOG.map((t) => {
             const isActive = activeTab === t.id;
             return (
