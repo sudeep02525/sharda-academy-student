@@ -284,7 +284,7 @@ export default function StudentDashboard({ token, onLogout }) {
               </tr>
               <tr>
                 <td class="label">Class & Section</td>
-                <td class="value">Standard ${data?.student?.classLevel || "N/A"} (${data?.student?.batch || "N/A"})</td>
+                <td class="value">Standard ${data?.student?.classLevel || "N/A"} ${data?.student?.stream ? `(${data?.student?.stream})` : ""}</td>
               </tr>
               <tr>
                 <td class="label">Description</td>
@@ -723,17 +723,7 @@ export default function StudentDashboard({ token, onLogout }) {
             </div>
             
             <div className="flex items-center gap-3.5">
-              {/* Search Box */}
-              <div className="hidden sm:flex items-center gap-2 bg-[#ffffff]/10 border border-white/10 px-3 py-1.5 rounded-xl w-60">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-slate-300 pointer-events-none flex-shrink-0">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.602 10.602z" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search anything..."
-                  className="search-input bg-transparent border-none text-xs w-full text-white focus:outline-none p-0 placeholder-slate-400"
-                />
-              </div>
+              {/* Removed Search Box */}
 
               {/* 🌗 Premium Light/Dark Theme Switcher */}
               <button
@@ -804,7 +794,9 @@ export default function StudentDashboard({ token, onLogout }) {
                   <div className="flex flex-wrap gap-x-4 gap-y-2 items-center text-xs sm:text-sm text-slate-500 font-medium">
                     <span>Std: <strong className="welcome-subtitle-val">{student?.classLevel}th</strong></span>
                     <span className="text-slate-300">•</span>
-                    <span>Batch: <strong className="welcome-subtitle-val">{student?.batch}</strong></span>
+                  {student?.stream && (
+                    <span>Stream: <strong className="welcome-subtitle-val">{student?.stream} {student?.subjects ? `(${student?.subjects})` : ""}</strong></span>
+                  )}
                     <span className="text-slate-300">•</span>
                     <span>Roll: <strong className="welcome-subtitle-val">{student?.rollNumber}</strong></span>
                   </div>
@@ -987,7 +979,7 @@ export default function StudentDashboard({ token, onLogout }) {
                             </svg>
                           </span>
                           <h5 className="font-display text-sm font-bold text-slate-800 dark:text-slate-200">No Lectures Scheduled Today</h5>
-                          <p className="font-sans text-xs text-slate-400 max-w-sm">There are no dynamic classes assigned to your batch for today. Ask your administrator for the schedule release.</p>
+                          <p className="font-sans text-xs text-slate-400 max-w-sm">There are no dynamic classes assigned to your class for today. Ask your administrator for the schedule release.</p>
                         </div>
                       );
                     })()}
@@ -1892,7 +1884,7 @@ export default function StudentDashboard({ token, onLogout }) {
                         </svg>
                       </span>
                       <h5 className="font-display text-sm font-bold text-slate-800 dark:text-slate-200">No Homework Tasks Assigned</h5>
-                      <p className="font-sans text-xs text-slate-400 max-w-sm">There are no homework tasks currently assigned to your batch profile in the database.</p>
+                      <p className="font-sans text-xs text-slate-400 max-w-sm">There are no homework tasks currently assigned to your class profile in the database.</p>
                     </div>
                   )}
 
@@ -1969,7 +1961,7 @@ export default function StudentDashboard({ token, onLogout }) {
               <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800/60 pb-3">
                 <div className="text-left">
                   <h4 className="font-display text-sm font-bold uppercase tracking-wider text-brand-navy dark:text-white">Class Timetable</h4>
-                  <p className="font-sans text-xs font-semibold text-slate-400 font-mono mt-1">January 2026 • Standard {student?.classLevel}th Board Batch A</p>
+                  <p className="font-sans text-xs font-semibold text-slate-400 font-mono mt-1">January 2026 • Standard {student?.classLevel}th</p>
                 </div>
                 <span className="font-sans text-[10px] font-bold text-[#0a1835] dark:text-brand-yellow bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-slate-800/40 px-2.5 py-1 rounded uppercase tracking-wider">ACADEMIC AGENDA</span>
               </div>
@@ -2011,7 +2003,7 @@ export default function StudentDashboard({ token, onLogout }) {
                           </svg>
                         </span>
                         <h5 className="font-display text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">No Lectures Scheduled Today</h5>
-                        <p className="font-sans text-xs text-slate-400">There are no dynamic classes assigned to your batch for today.</p>
+                        <p className="font-sans text-xs text-slate-400">There are no dynamic classes assigned to your class for today.</p>
                       </div>
                     );
                   })()}
@@ -2367,7 +2359,9 @@ export default function StudentDashboard({ token, onLogout }) {
                     <p className="font-sans text-xs font-semibold text-slate-400 font-mono">{student?.email} • {student?.phone}</p>
                     
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <span className="px-2.5 py-0.5 bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold uppercase rounded-lg">Batch {student?.batch}</span>
+                      {student?.stream && (
+                        <span className="px-2.5 py-0.5 bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold uppercase rounded-lg">{student?.stream} {student?.subjects ? `(${student?.subjects})` : ""}</span>
+                      )}
                       <span className="px-2.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-500 text-[10px] font-bold uppercase rounded-lg">Roll {student?.rollNumber}</span>
                       <span className="px-2.5 py-0.5 bg-blue-50 border border-blue-200 text-blue-600 text-[10px] font-bold uppercase rounded-lg">
                         {student?.classLevel == 10 ? "Class 10 · SSC" : student?.classLevel == 12 ? "Class 12 · HSC" : `Std ${student?.classLevel}th`}
@@ -2397,7 +2391,7 @@ export default function StudentDashboard({ token, onLogout }) {
                       <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-400 font-bold">Full Name:</span><span className="text-slate-900 font-extrabold">{student?.name}</span></div>
                       <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-400 font-bold">Email Address:</span><span className="text-slate-900 font-extrabold font-mono">{student?.email}</span></div>
                       <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-400 font-bold">Mobile Number:</span><span className="text-slate-900 font-extrabold font-mono">{student?.phone}</span></div>
-                      <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-400 font-bold">Class / Division:</span><span className="text-slate-900 font-extrabold">Standard {student?.classLevel} ({student?.batch})</span></div>
+                      <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-400 font-bold">Class / Division:</span><span className="text-slate-900 font-extrabold">Standard {student?.classLevel} {student?.stream ? `- ${student?.stream}` : ""} {student?.subjects ? `(${student?.subjects})` : ""}</span></div>
                       <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-400 font-bold">Parent Phone:</span><span className="text-slate-900 font-extrabold font-mono">{student?.fatherPhone || student?.motherPhone || "N/A"}</span></div>
                       <div className="flex justify-between pb-1"><span className="text-slate-400 font-bold">Home Address (Optional):</span><span className="text-slate-900 font-extrabold text-right max-w-[180px] truncate" title={student?.homeAddress || "N/A"}>{student?.homeAddress || "N/A"}</span></div>
                     </div>
@@ -2423,6 +2417,7 @@ export default function StudentDashboard({ token, onLogout }) {
                           <div>
                             <h5 className="font-display text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-none">{student?.fatherName || "N/A"} <span className="text-[10px] text-slate-400 font-semibold font-mono">(Father)</span></h5>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-bold font-mono">{student?.fatherPhone || "N/A"}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-bold font-mono">{student?.fatherEmail || "N/A"}</p>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -2450,6 +2445,7 @@ export default function StudentDashboard({ token, onLogout }) {
                           <div>
                             <h5 className="font-display text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-none">{student?.motherName || "N/A"} <span className="text-[10px] text-slate-400 font-semibold font-mono">(Mother)</span></h5>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-bold font-mono">{student?.motherPhone || "N/A"}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-bold font-mono">{student?.motherEmail || "N/A"}</p>
                           </div>
                         </div>
                         <div className="flex gap-2">
