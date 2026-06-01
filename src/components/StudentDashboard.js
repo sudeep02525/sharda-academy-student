@@ -79,10 +79,10 @@ export default function StudentDashboard({ token, onLogout }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otpCodeInput, setOtpCodeInput] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [otpSending, setOtpSending] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
   const [otpSuccess, setOtpSuccess] = useState("");
   const [otpError, setOtpError] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
 
   const [darkMode, setDarkMode] = useState(false);
 
@@ -161,6 +161,28 @@ export default function StudentDashboard({ token, onLogout }) {
     const timer = setInterval(updateTime, 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // Auto-dismiss warnings/success messages after 4 seconds
+  useEffect(() => {
+    let timeout;
+    if (otpError || otpSuccess) {
+      timeout = setTimeout(() => {
+        setOtpError("");
+        setOtpSuccess("");
+      }, 4000);
+    }
+    return () => clearTimeout(timeout);
+  }, [otpError, otpSuccess]);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   // Auto-refresh data when the active tab changes
   useEffect(() => {
@@ -415,7 +437,41 @@ export default function StudentDashboard({ token, onLogout }) {
     });
   };
 
-  const handleSendOtp = () => {
+  const handleForgotPassword = async () => {
+    if (!data?.student?.email) {
+      setOtpError("Email not found for your account.");
+      return;
+    }
+    setAuthLoading(true);
+    setOtpError("");
+    setOtpSuccess("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.student.email })
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        setOtpSuccess("A password recovery OTP has been sent to your registered email.");
+        setOtpSent(true); // Switch to OTP mode
+        setResendTimer(60);
+      } else {
+        setOtpError(resData.message || "Failed to initiate password recovery.");
+      }
+    } catch (err) {
+      setOtpError("Unable to connect to the server.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleResetPasswordWithOtp = async (e) => {
+    e.preventDefault();
+    if (!otpCodeInput) {
+      setOtpError("Please enter the 6-digit OTP.");
+      return;
+    }
     if (!newPassword || newPassword !== confirmPassword) {
       setOtpError("New password and confirmation do not match.");
       return;
@@ -424,26 +480,46 @@ export default function StudentDashboard({ token, onLogout }) {
       setOtpError("New password must be at least 6 characters.");
       return;
     }
-    setOtpSending(true);
+    setAuthLoading(true);
     setOtpError("");
     setOtpSuccess("");
-    setTimeout(() => {
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedOtp(code);
-      setOtpSent(true);
-      setOtpSending(false);
-      setOtpSuccess(`Security code sent successfully! Check SAMS notifications. (Simulated OTP: ${code})`);
-      alert(`[SAMS SECURITY] Password recovery OTP code: ${code}`);
-    }, 1200);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.student.email, otp: otpCodeInput, newPassword })
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        setOtpSuccess("Your security password has been changed successfully!");
+        setOtpCodeInput("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setOtpSent(false); // Switch back to normal mode
+      } else {
+        setOtpError(resData.message || "Invalid or expired recovery code.");
+      }
+    } catch (err) {
+      setOtpError("Unable to connect to the server.");
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
-    if (otpCodeInput !== generatedOtp) {
-      setOtpError("Invalid or expired security verification code.");
+    if (otpSent) {
+      return handleResetPasswordWithOtp(e);
+    }
+    if (!newPassword || newPassword !== confirmPassword) {
+      setOtpError("New password and confirmation do not match.");
       return;
     }
-    setLoading(true);
+    if (newPassword.length < 6) {
+      setOtpError("New password must be at least 6 characters.");
+      return;
+    }
+    setAuthLoading(true);
     setOtpError("");
     setOtpSuccess("");
     try {
@@ -461,21 +537,13 @@ export default function StudentDashboard({ token, onLogout }) {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
-        setOtpCodeInput("");
-        setOtpSent(false);
       } else {
         setOtpError(resData.message || "Failed to update password. Verify current password.");
       }
     } catch (err) {
-      // Fallback presentation mockup success
-      setOtpSuccess("Your security password has been changed successfully!");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setOtpCodeInput("");
-      setOtpSent(false);
+      setOtpError("Unable to connect to the server.");
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
@@ -2426,15 +2494,27 @@ export default function StudentDashboard({ token, onLogout }) {
                       )}
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="text-left space-y-1">
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current Password</label>
-                          <input 
-                            type="password" required
-                            value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl"
-                          />
-                        </div>
+                        {!otpSent ? (
+                          <div className="text-left space-y-1">
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current Password</label>
+                            <input 
+                              type="password" required={!otpSent}
+                              value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl"
+                            />
+                          </div>
+                        ) : (
+                          <div className="text-left space-y-1 animate-fade-in-up">
+                            <label className="block text-[10px] font-bold text-emerald-600 uppercase tracking-wider">6-Digit OTP Code</label>
+                            <input 
+                              type="text" required={otpSent} maxLength={6}
+                              value={otpCodeInput} onChange={(e) => setOtpCodeInput(e.target.value)}
+                              placeholder="— — — — — —"
+                              className="w-full px-3.5 py-2.5 bg-emerald-50 border border-emerald-300 text-emerald-800 text-center font-mono font-bold text-xs rounded-xl"
+                            />
+                          </div>
+                        )}
 
                         <div className="text-left space-y-1">
                           <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">New Password</label>
@@ -2456,35 +2536,46 @@ export default function StudentDashboard({ token, onLogout }) {
                           />
                         </div>
 
-                        {otpSent && (
-                          <div className="text-left space-y-1 animate-fade-in-up">
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider text-emerald-600">6-Digit Security OTP</label>
-                            <input 
-                              type="text" required maxLength={6}
-                              value={otpCodeInput} onChange={(e) => setOtpCodeInput(e.target.value)}
-                              placeholder="— — — — — —"
-                              className="w-full px-3.5 py-2.5 text-center font-mono text-xs font-bold bg-emerald-50/50 border border-emerald-300 text-emerald-800 rounded-xl"
-                            />
-                          </div>
-                        )}
                       </div>
 
-                      <div className="flex gap-3 pt-2">
+                      <div className="flex items-center justify-between gap-3 pt-2">
+                        <button 
+                          type="submit" disabled={authLoading}
+                          className="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-widest text-[#0a1835] bg-[#f1af3c] hover:bg-amber-400 rounded-xl shadow cursor-pointer transition-all active:scale-95 duration-200"
+                        >
+                          {authLoading ? "PROCESSING..." : (otpSent ? "RESET & CHANGE" : "CONFIRM CHANGE")}
+                        </button>
+
                         {!otpSent ? (
                           <button 
-                            type="button" disabled={otpSending}
-                            onClick={handleSendOtp}
-                            className="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-widest text-[#0a1835] bg-[#f1af3c] hover:bg-amber-400 rounded-xl shadow cursor-pointer transition-all active:scale-95 duration-200"
+                            type="button" 
+                            onClick={handleForgotPassword}
+                            className="text-[10px] font-bold text-slate-500 hover:text-brand-navy dark:hover:text-white underline uppercase tracking-wider cursor-pointer"
                           >
-                            {otpSending ? "SENDING CODE..." : "SEND SECURITY OTP"}
+                            Forgot Password?
                           </button>
                         ) : (
-                          <button 
-                            type="submit"
-                            className="px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-widest text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow cursor-pointer transition-all active:scale-95 duration-200"
-                          >
-                            VERIFY & CHANGE PASSWORD
-                          </button>
+                          <div className="flex gap-4 items-center">
+                            <button 
+                              type="button" 
+                              onClick={handleForgotPassword}
+                              disabled={authLoading || resendTimer > 0}
+                              className={`text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 ${resendTimer > 0 ? "text-slate-400 cursor-not-allowed" : "text-amber-600 hover:text-amber-700 cursor-pointer underline"}`}
+                            >
+                              {resendTimer > 0 ? `Resend OTP (${resendTimer}s)` : "Resend OTP"}
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                setOtpSent(false);
+                                setOtpError("");
+                                setOtpSuccess("");
+                              }}
+                              className="text-[10px] font-bold text-slate-500 hover:text-red-500 underline uppercase tracking-wider cursor-pointer"
+                            >
+                              Cancel Reset
+                            </button>
+                          </div>
                         )}
                       </div>
                     </form>
