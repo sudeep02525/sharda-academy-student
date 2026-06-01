@@ -482,7 +482,7 @@ export default function StudentDashboard({ token, onLogout }) {
   if (loading && !paySimulating) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--background)] gap-4" style={{ minHeight: "100vh" }}>
-        <div className="w-10 h-10 rounded-full border-4 border-[var(--card-border)] border-t-[var(--color-brand-gold)] animate-spin-slow"></div>
+        <div className="w-10 h-10 rounded-full border-4 border-[var(--card-border)] border-t-[var(--color-brand-gold)] animate-spin"></div>
         <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "12px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6b7280" }}>Loading your dashboard...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
