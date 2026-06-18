@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import UserLogin from "@/components/UserLogin";
 import StudentDashboard from "@/components/StudentDashboard";
 
-export default function SAMSUserPortal() {
+export default function UserPortal() {
   const [token, setToken] = useState("");
   const [role, setRole] = useState("");
 

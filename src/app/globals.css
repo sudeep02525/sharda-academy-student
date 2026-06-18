@@ -325,6 +325,12 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(241,175,60,0.12) !important;
 }
 
+.dark input:focus, .dark select:focus, .dark textarea:focus {
+  outline: none !important;
+  border-color: #f1af3c !important;
+  box-shadow: 0 0 0 3px rgba(241,175,60,0.45) !important;
+}
+
 input::placeholder, textarea::placeholder {
   color: var(--text-tertiary) !important;
   font-weight: 400 !important;

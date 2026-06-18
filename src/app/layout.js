@@ -1,7 +1,8 @@
 import "./globals.css";
+import NotificationListener from "../components/NotificationListener";
 
 export const metadata = {
-  title: "Student Dashboard | Sharda Academy SAMS Portal",
+  title: "Student Dashboard | Sharda Academy Portal",
   description: "Official student performance and biometric check-in tracking dashboard of Sharda Academy.",
   icons: {
     icon: "/logo_cropped.png",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
       </head>
       <body style={{ margin: 0, padding: 0 }}>
         {children}
+        <NotificationListener />
       </body>
     </html>
   );

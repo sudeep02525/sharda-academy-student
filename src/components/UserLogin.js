@@ -10,6 +10,49 @@ export default function UserLogin({ onAuthSuccess }) {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const handleThemeChange = (e) => {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile) {
+        if (e.matches) {
+          setDarkMode(true);
+          document.documentElement.classList.add("dark");
+        } else {
+          setDarkMode(false);
+          document.documentElement.classList.remove("dark");
+        }
+      }
+    };
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", handleThemeChange);
+    const isMobile = window.innerWidth < 640;
+    const systemDark = mediaQuery.matches;
+    const savedTheme = localStorage.getItem("sams-theme");
+    const shouldBeDark = isMobile ? systemDark : savedTheme === "dark" || (!savedTheme && systemDark);
+
+    if (shouldBeDark) {
+      setDarkMode(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    }
+    return () => mediaQuery.removeEventListener("change", handleThemeChange);
+  }, []);
+
+  const toggleTheme = () => {
+    if (darkMode) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("sams-theme", "light");
+      setDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("sams-theme", "dark");
+      setDarkMode(true);
+    }
+  };
 
   // Tab states: "signin" or "forgot"
   const [tab, setTab] = useState("signin");
@@ -65,7 +108,7 @@ export default function UserLogin({ onAuthSuccess }) {
         setError(data.message || "Invalid email address or password.");
       }
     } catch (err) {
-      setError("Unable to connect to SAMS backend server.");
+      setError("Unable to connect to Sharda Academy server.");
     } finally {
       setLoading(false);
     }
@@ -134,6 +177,16 @@ export default function UserLogin({ onAuthSuccess }) {
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-brand-beige dotbg noise overflow-x-hidden relative">
+      {/* Theme Toggle on Login Screen */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50">
+        <button onClick={toggleTheme} className="p-2.5 rounded-full border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-[#0a1835]/50 backdrop-blur-md text-slate-600 dark:text-brand-gold cursor-pointer transition-all hover:scale-105 shadow-sm">
+          {darkMode ? (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m0 13.5V21m9.75-9h-2.25M4.95 19.05l1.59-1.59m11.92-11.92l1.59-1.59M3.52 12h2.25m11.92 7.05l-1.59-1.59M4.95 4.95l1.59 1.59M12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z" /></svg>
+          )}
+        </button>
+      </div>
       
       {/* 🎨 Left Panel: High-End Showcase (Hidden on Mobile) */}
       <div className="hidden lg:flex lg:col-span-6 bg-[#060f22] text-white flex-col justify-between p-12 relative overflow-hidden border-r border-white/5">
@@ -162,7 +215,7 @@ export default function UserLogin({ onAuthSuccess }) {
               className="text-[9px] font-bold tracking-widest uppercase leading-none mt-1.5 block"
               style={{ color: "rgba(255, 255, 255, 0.6)" }}
             >
-              Student SAMS Platform
+              Student Portal
             </span>
           </div>
         </div>
@@ -192,7 +245,7 @@ export default function UserLogin({ onAuthSuccess }) {
               className="text-xs leading-relaxed font-semibold"
               style={{ color: "rgba(255, 255, 255, 0.85)" }}
             >
-              Sharda Academy's SAMS Portal connects students directly with live timetable routines, biometric check-in trackers, fee ledgers, and dynamic examination performance matrices.
+              Sharda Academy's Student Portal connects students directly with live timetable routines, biometric check-in trackers, fee ledgers, and dynamic examination performance matrices.
             </div>
           </div>
 

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import html2canvas from "html2canvas";
+import { io } from "socket.io-client";
 const getStudentSidebarIcon = (id, className) => {
   switch (id) {
     case "overview":
@@ -64,6 +66,9 @@ export default function StudentDashboard({ token, onLogout }) {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview"); 
   const [paySimulating, setPaySimulating] = useState(null);
+  const [isPartialPayment, setIsPartialPayment] = useState(false);
+  const [customAmount, setCustomAmount] = useState("");
+  const [payError, setPayError] = useState("");
   const [paySuccess, setPaySuccess] = useState(false);
   const [attendanceMonth, setAttendanceMonth] = useState("January 2026");
   
@@ -72,6 +77,108 @@ export default function StudentDashboard({ token, onLogout }) {
   
   // Responsive sidebar drawer state
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Live Toast for Real-time events
+  const [liveToast, setLiveToast] = useState(null);
+
+  useEffect(() => {
+    if (liveToast) {
+      const timer = setTimeout(() => setLiveToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [liveToast]);
+
+  // Audio helper for notifications
+  const playNotificationSound = () => {
+    try {
+      // Playing a reliable public notification pop sound (Google Actions Library)
+      const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+      audio.volume = 0.8;
+      audio.play().catch(e => console.log("Audio play blocked:", e));
+    } catch(e) {}
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    const socket = io(API_BASE_URL);
+
+    socket.on("new_notice", (notice) => {
+      // Create local notice format
+      const localNotice = {
+        id: notice._id,
+        type: notice.category === "General" ? "Announcements" : notice.category === "Student" ? "Class Updates" : notice.category,
+        title: notice.title,
+        desc: notice.content,
+        date: new Date(notice.date || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        unread: true,
+        timeAgo: "Just now",
+      };
+      
+      setNotificationsDb((prev) => [localNotice, ...prev]);
+      setLiveToast({
+        title: "New Broadcast Notice",
+        message: notice.title,
+        type: "notice"
+      });
+
+      playNotificationSound();
+
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("New Broadcast Notice", {
+          body: notice.title,
+          icon: "/logo.png"
+        });
+      }
+    });
+
+    socket.on("new_homework", (homework) => {
+      setLiveToast({
+        title: "New Homework Assigned",
+        message: `${homework.subject}: ${homework.title}`,
+        type: "homework"
+      });
+      playNotificationSound();
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("New Homework", {
+          body: `${homework.subject}: ${homework.title}`,
+          icon: "/logo.png"
+        });
+      }
+      fetchData(true);
+    });
+
+    socket.on("new_fee", (fee) => {
+      setLiveToast({
+        title: "New Fee Invoice Generated",
+        message: `₹${fee.amount} due on ${new Date(fee.dueDate).toLocaleDateString()}`,
+        type: "fee"
+      });
+      playNotificationSound();
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("Fee Invoice Generated", {
+          body: `₹${fee.amount} is due on ${new Date(fee.dueDate).toLocaleDateString()}`,
+          icon: "/logo.png"
+        });
+      }
+      fetchData(true);
+    });
+
+    return () => socket.disconnect();
+  }, [token]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSidebarOpen(window.innerWidth >= 768);
+    }
+  }, []);
 
   // Change Password state variables
   const [currentPassword, setCurrentPassword] = useState("");
@@ -83,6 +190,47 @@ export default function StudentDashboard({ token, onLogout }) {
   const [resendTimer, setResendTimer] = useState(0);
   const [otpSuccess, setOtpSuccess] = useState("");
   const [otpError, setOtpError] = useState("");
+  const [expandedResultId, setExpandedResultId] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  const downloadReport = async (result) => {
+    setDownloadingId(result._id);
+    const element = document.getElementById(`report-card-${result._id}`);
+    if (!element) {
+      setDownloadingId(null);
+      return;
+    }
+    
+    // Briefly make it visible but fixed offscreen so html2canvas can capture it properly
+    const originalLeft = element.style.left;
+    const originalTop = element.style.top;
+    const originalOpacity = element.style.opacity;
+    
+    element.style.left = "-9999px";
+    element.style.top = "-9999px";
+    element.style.opacity = "1";
+    element.style.display = "flex";
+    
+    try {
+      // Need a tiny timeout to ensure DOM paints before capture
+      await new Promise(res => setTimeout(res, 50));
+      
+      const canvas = await html2canvas(element, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = imgData;
+      link.download = `ShardaAcademy_${result.examName.replace(/\s+/g, '_')}_Report.png`;
+      link.click();
+    } catch (err) {
+      console.error("Error generating report image:", err);
+      alert("Failed to download report image.");
+    } finally {
+      // Revert styles
+      element.style.opacity = "0";
+      element.style.display = "none";
+      setDownloadingId(null);
+    }
+  };
 
   const [darkMode, setDarkMode] = useState(false);
 
@@ -305,7 +453,7 @@ export default function StudentDashboard({ token, onLogout }) {
             </table>
             <div class="footer">
               Thank you for your payment. This is a computer-generated transaction record and requires no physical signature.<br>
-              © ${new Date().getFullYear()} Sharda Academy SAMS
+              © ${new Date().getFullYear()} Sharda Academy
             </div>
           </div>
           <script>
@@ -337,7 +485,7 @@ export default function StudentDashboard({ token, onLogout }) {
               title: hw.title,
               dueDate: hw.dueDate,
               status: "Pending",
-              teacher: hw.teacherName || "Academy Staff",
+              type: "Homework",
               subject: hw.subject,
               attachmentName: hw.attachmentName,
               attachmentData: hw.attachmentData,
@@ -380,34 +528,127 @@ export default function StudentDashboard({ token, onLogout }) {
         if (!isSilent) setError(resData.message || "Failed to load student portfolio.");
       }
     } catch (err) {
-      if (!isSilent) setError("Unable to sync details with SAMS backend.");
+      if (!isSilent) setError("Unable to sync details with Sharda Academy server.");
     } finally {
       if (!isSilent) setLoading(false);
     }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const executePayment = async () => {
     if (!paySimulating) return;
+    
     setLoading(true);
+    const res = await loadRazorpayScript();
+    if (!res) {
+      alert("Razorpay SDK failed to load. Are you connected to the internet?");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/sams/fees/${paySimulating._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: "Paid", paymentMethod: "UPI Checkout" }),
-      });
-      const resData = await res.json();
-      if (resData.success) {
-        setPaySuccess(true);
-        setTimeout(() => {
-          setPaySimulating(null);
-          setPaySuccess(false);
-          fetchData();
-        }, 1500);
+      setPayError("");
+      // 1. Create Order
+      const remainingBalance = paySimulating.amount - (paySimulating.amountPaid || 0);
+      const amountToPay = isPartialPayment && customAmount && !isNaN(customAmount) && Number(customAmount) > 0 ? Number(customAmount) : remainingBalance;
+
+      const minAllowed = Math.min(4000, remainingBalance);
+      if (amountToPay < minAllowed) {
+        setPayError(`Minimum payment amount is ₹${minAllowed.toLocaleString()}`);
+        setLoading(false);
+        return;
       }
+
+      const orderRes = await fetch(`${API_BASE_URL}/api/sams/student/fees/${paySimulating._id}/razorpay-order`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ amountToPay })
+      });
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) {
+        setPayError(orderData.message || "Failed to create payment order");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Initialize Razorpay Checkout
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.order.amount,
+        currency: "INR",
+        name: "Sharda Academy",
+        description: "Tuition Fee Payment",
+        image: "/logo.png",
+        order_id: orderData.order.id,
+        handler: async function (response) {
+          // 3. Verify Payment
+          try {
+            setLoading(true);
+            const verifyRes = await fetch(`${API_BASE_URL}/api/sams/student/fees/${paySimulating._id}/razorpay-verify`, {
+              method: "POST",
+              headers: { 
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}` 
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+            const verifyData = await verifyRes.json();
+            
+            if (verifyData.success) {
+              setPaySuccess(true);
+              setTimeout(() => {
+                setPaySimulating(null);
+                setPaySuccess(false);
+                fetchData();
+              }, 1500);
+            } else {
+              alert("Payment verification failed. If money was deducted, please contact administration.");
+            }
+          } catch (error) {
+            alert("Error verifying payment.");
+          } finally {
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: data?.student?.name || "",
+          email: data?.student?.email || "",
+          contact: data?.student?.phone || ""
+        },
+        theme: {
+          color: "#0a1835" // Sharda Academy brand color
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.on("payment.failed", function (response) {
+        alert("Payment Failed: " + response.error.description);
+      });
+      paymentObject.open();
+
     } catch (err) {
+      alert("Payment initialization error.");
     } finally {
       setLoading(false);
     }
@@ -904,7 +1145,7 @@ export default function StudentDashboard({ token, onLogout }) {
 
                 {/* 4. Fees Pending Card (Red/Green Reactive Theme) */}
                 {(() => {
-                  const totalPendingDues = pendingInvoices.reduce((acc, f) => acc + f.amount, 0);
+                  const totalPendingDues = pendingInvoices.reduce((acc, f) => acc + (f.amount - (f.amountPaid || 0)), 0);
                   const isPending = totalPendingDues > 0;
                   return (
                     <div className={`premium-glass-card p-5 flex flex-col justify-between min-h-[120px] border-l-4 ${isPending ? "border-l-[#dc2626]" : "border-l-[#10b981]"} shadow-sm hover-glow transition-all duration-300 cursor-pointer`} onClick={() => setActiveTab("fees")}>
@@ -961,7 +1202,7 @@ export default function StudentDashboard({ token, onLogout }) {
                           <div key={lecture._id || idx} className="p-4 premium-inner-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                             <div className="text-left">
                               <h5 className="font-display text-sm font-bold text-slate-900 leading-tight">{lecture.subject}</h5>
-                              <p className="font-sans text-xs text-slate-500 mt-1 font-semibold">{lecture.teacherName || "Academy Staff"} • {lecture.room || "Classroom"}</p>
+                              <p className="font-sans text-xs text-slate-500 mt-1 font-semibold">{lecture.room || "Classroom"}</p>
                             </div>
                             <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 border-slate-100 pt-2 sm:pt-0 mt-1 sm:mt-0">
                               <span className="font-mono text-xs text-slate-500">{lecture.startTime} - {lecture.endTime}</span>
@@ -995,7 +1236,7 @@ export default function StudentDashboard({ token, onLogout }) {
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4.5 h-4.5 dashboard-section-icon">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
                         </svg>
-                        <span>Upcoming SAMS Tests</span>
+                        <span>Upcoming Tests</span>
                       </h4>
                       <span className="font-sans text-[11px] font-bold text-slate-500 hover:text-brand-yellow cursor-pointer transition-colors" onClick={() => setActiveTab("academic")}>View all ↗</span>
                     </div>
@@ -1109,7 +1350,7 @@ export default function StudentDashboard({ token, onLogout }) {
                               </svg>
                             </span>
                             <h5 className="font-display text-xs font-bold text-slate-800 dark:text-slate-200">No Graded Results Found</h5>
-                            <p className="font-sans text-[10px] text-slate-400 max-w-[240px]">Academic metrics and subject percentages will compile here as graded exam cards are registered in SAMS.</p>
+                            <p className="font-sans text-[10px] text-slate-400 max-w-[240px]">Academic metrics and subject percentages will compile here as graded exam cards are registered in the system.</p>
                           </div>
                         );
                       })()}
@@ -1302,7 +1543,7 @@ export default function StudentDashboard({ token, onLogout }) {
 
                 {/* 2. Pending dues Card */}
                 {(() => {
-                  const totalPendingDues = pendingInvoices.reduce((acc, f) => acc + f.amount, 0);
+                  const totalPendingDues = pendingInvoices.reduce((acc, f) => acc + (f.amount - (f.amountPaid || 0)), 0);
                   return (
                     <div className="p-5 premium-glass-card text-left flex justify-between items-center shadow-sm">
                       <div className="space-y-2">
@@ -1354,7 +1595,7 @@ export default function StudentDashboard({ token, onLogout }) {
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-brand-navy">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-19.5 8.25h3m3 0h3m-9-1.5h18a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25Z" />
                       </svg>
-                      <span>SAMS Payment History Ledger</span>
+                      <span>Payment History Ledger</span>
                     </h4>
                     <span className="font-sans text-xs font-bold text-slate-400 hover:text-brand-yellow cursor-pointer transition-colors">Download Receipt ↗</span>
                   </div>
@@ -1426,15 +1667,14 @@ export default function StudentDashboard({ token, onLogout }) {
                       {/* Dynamic Invoice Breakdown */}
                       <div className="premium-glass-card p-5 space-y-4">
                         <div className="border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
-                          <h4 className="font-display text-sm font-bold uppercase tracking-wider text-brand-navy">Invoice Fee Breakdown</h4>
+                          <h4 className="font-display text-sm font-bold uppercase tracking-wider text-brand-navy">Fee Summary</h4>
                         </div>
 
                         <div className="space-y-3.5 text-xs font-semibold text-slate-650">
-                          <div className="flex justify-between"><span>Base Tuition Fee</span><span className="text-slate-900 dark:text-white font-bold">₹{Math.round(pendingInvoices[0].amount * 0.85).toLocaleString()}</span></div>
-                          <div className="flex justify-between"><span>Coaching Material Sync</span><span className="text-slate-900 dark:text-white font-bold">₹{Math.round(pendingInvoices[0].amount * 0.10).toLocaleString()}</span></div>
-                          <div className="flex justify-between"><span>System Maintenance Fee</span><span className="text-slate-900 dark:text-white font-bold">₹{Math.round(pendingInvoices[0].amount * 0.05).toLocaleString()}</span></div>
+                          <div className="flex justify-between"><span>Original Total Amount</span><span className="text-slate-900 dark:text-white font-bold">₹{pendingInvoices[0].amount.toLocaleString()}</span></div>
+                          <div className="flex justify-between text-emerald-600"><span>Amount Paid</span><span className="font-bold">₹{(pendingInvoices[0].amountPaid || 0).toLocaleString()}</span></div>
                           <div className="w-full border-t border-dashed border-slate-200 dark:border-slate-800/30 my-2"></div>
-                          <div className="flex justify-between text-brand-navy font-extrabold text-sm"><span>Total Due</span><span className="text-brand-gold2 font-display text-base font-extrabold">₹{pendingInvoices[0].amount.toLocaleString()}</span></div>
+                          <div className="flex justify-between text-brand-navy font-extrabold text-sm"><span>Total Due Balance</span><span className="text-brand-gold2 font-display text-base font-extrabold">₹{(pendingInvoices[0].amount - (pendingInvoices[0].amountPaid || 0)).toLocaleString()}</span></div>
                         </div>
                       </div>
 
@@ -1442,7 +1682,7 @@ export default function StudentDashboard({ token, onLogout }) {
                       <div className="p-5 premium-inner-card text-left space-y-4 shadow-sm">
                         <div className="space-y-2">
                           <p className="text-[10px] font-bold uppercase tracking-wider text-brand-gold2 bg-brand-yellow/10 px-2.5 py-1 rounded-md inline-block">PAYMENT DUE SOON</p>
-                          <h3 className="font-display text-2xl font-black text-slate-900 dark:text-white tracking-tight pt-1">₹{pendingInvoices[0].amount.toLocaleString()}</h3>
+                          <h3 className="font-display text-2xl font-black text-slate-900 dark:text-white tracking-tight pt-1">₹{(pendingInvoices[0].amount - (pendingInvoices[0].amountPaid || 0)).toLocaleString()}</h3>
                           <p className="font-sans text-xs text-slate-500 dark:text-slate-400 font-semibold font-mono">Due Date: {pendingInvoices[0].dueDate}</p>
                         </div>
 
@@ -1575,10 +1815,10 @@ export default function StudentDashboard({ token, onLogout }) {
                           <tr className="border-b border-slate-200/60 dark:border-slate-800/30 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                             <th className="py-3 px-3">Test Name</th>
                             <th className="py-3 px-3 font-mono">Date</th>
-                            <th className="py-3 px-3 text-center">Subject-wise Breakdown</th>
                             <th className="py-3 px-3 text-center">Total Marks</th>
                             <th className="py-3 px-3 text-center">Percentage</th>
                             <th className="py-3 px-3 text-center">Grade</th>
+                            <th className="py-3 px-3 text-center">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800/30 font-semibold text-slate-700 dark:text-slate-300">
@@ -1587,21 +1827,73 @@ export default function StudentDashboard({ token, onLogout }) {
                             if (row.marks && row.marks.length > 0) {
                               row.marks.forEach(m => { obtainedSum += m.obtained; maxSum += m.max; });
                             }
+                            const isExpanded = expandedResultId === (row._id || idx);
                             return (
-                              <tr key={row._id || idx} className="hover:bg-slate-50/10 transition-all">
-                                <td className="py-3.5 px-3 text-slate-900 dark:text-white font-bold">{row.examName}</td>
-                                <td className="py-3.5 px-3 font-mono text-xs text-slate-400 font-medium">
-                                  {new Date(row.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                </td>
-                                <td className="py-3.5 px-3 text-center font-mono text-[11px]">
-                                  {row.marks ? row.marks.map(m => `${m.subject}: ${m.obtained}/${m.max}`).join(", ") : "--"}
-                                </td>
-                                <td className="py-3.5 px-3 text-center font-mono font-bold text-slate-900 dark:text-white">{obtainedSum}/{maxSum}</td>
-                                <td className="py-3.5 px-3 text-center font-mono text-emerald-650 font-extrabold">{row.percentage}%</td>
-                                <td className="py-3.5 px-3 text-center">
-                                  <span className="px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200/60 text-[10px] font-extrabold dark:bg-amber-500/10 dark:text-amber-400">{row.grade}</span>
-                                </td>
-                              </tr>
+                              <React.Fragment key={row._id || idx}>
+                                <tr 
+                                  className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all cursor-pointer ${isExpanded ? 'bg-slate-50/80 dark:bg-slate-800/40' : ''}`}
+                                  onClick={() => setExpandedResultId(isExpanded ? null : (row._id || idx))}
+                                >
+                                  <td className="py-3.5 px-3 text-slate-900 dark:text-white font-bold">{row.examName}</td>
+                                  <td className="py-3.5 px-3 font-mono text-xs text-slate-400 font-medium">
+                                    {new Date(row.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  </td>
+                                  <td className="py-3.5 px-3 text-center font-mono font-bold text-slate-900 dark:text-white">{obtainedSum}/{maxSum}</td>
+                                  <td className="py-3.5 px-3 text-center font-mono text-emerald-650 font-extrabold">{row.percentage}%</td>
+                                  <td className="py-3.5 px-3 text-center">
+                                    <span className="px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200/60 text-[10px] font-extrabold dark:bg-amber-500/10 dark:text-amber-400">{row.grade}</span>
+                                  </td>
+                                  <td className="py-3.5 px-3 text-center">
+                                    <div className="flex items-center justify-center gap-1.5 text-brand-blue hover:text-brand-yellow transition-colors">
+                                      <span className="text-[9px] font-extrabold uppercase tracking-wider">{isExpanded ? 'Hide' : 'Details'}</span>
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                      </svg>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {isExpanded && (
+                                  <tr className="bg-slate-50/30 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800/40">
+                                    <td colSpan="6" className="px-4 py-5">
+                                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-3 border-b border-slate-200/50 dark:border-slate-700/50">
+                                        <h5 className="font-display text-xs font-bold uppercase tracking-widest text-brand-navy dark:text-white flex items-center gap-2">
+                                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-brand-yellow">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+                                          </svg>
+                                          Detailed Subject Breakdown
+                                        </h5>
+                                        <button 
+                                          onClick={(e) => { e.stopPropagation(); downloadReport(row); }}
+                                          disabled={downloadingId === row._id}
+                                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-sm text-[10px] font-extrabold uppercase tracking-widest text-brand-blue hover:text-white hover:bg-brand-yellow hover:border-brand-yellow transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                          {downloadingId === row._id ? (
+                                            <span className="flex items-center gap-2"><svg className="animate-spin h-3.5 w-3.5 text-brand-blue group-hover:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...</span>
+                                          ) : (
+                                            <>
+                                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                              </svg>
+                                              Download Image
+                                            </>
+                                          )}
+                                        </button>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                        {row.marks && row.marks.map((m, mIdx) => (
+                                          <div key={mIdx} className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/50 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow">
+                                            <span className="font-sans text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-wide">{m.subject}</span>
+                                            <div className="flex flex-col items-end">
+                                              <span className="font-mono text-xs font-black text-slate-900 dark:text-white">{m.obtained} <span className="text-slate-400 font-medium">/ {m.max}</span></span>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
                             );
                           })}
                         </tbody>
@@ -1614,7 +1906,7 @@ export default function StudentDashboard({ token, onLogout }) {
                           </svg>
                         </span>
                         <h5 className="font-display text-sm font-bold text-slate-800 dark:text-slate-200">No scored tests logged</h5>
-                        <p className="font-sans text-xs text-slate-400 max-w-sm">No exam cards or graded tests are currently compiled in your SAMS dynamic portfolio ledger.</p>
+                        <p className="font-sans text-xs text-slate-400 max-w-sm">No exam cards or graded tests are currently compiled in your dynamic portfolio ledger.</p>
                       </div>
                     )}
                   </div>
@@ -1837,7 +2129,7 @@ export default function StudentDashboard({ token, onLogout }) {
                             <div className="text-left space-y-1.5 min-w-0">
                               <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${badgeColor}`}>{hw.subject}</span>
-                                <span>by {hw.teacher}</span>
+
                               </div>
                               <h5 className={`font-display text-xs sm:text-sm font-bold truncate leading-snug ${isSubmitted ? "text-slate-400 line-through dark:text-slate-500" : "text-slate-900 dark:text-white"}`}>{hw.title}</h5>
                               <p className="font-sans text-[11px] text-slate-400">Due {hw.dueDate}</p>
@@ -1901,7 +2193,7 @@ export default function StudentDashboard({ token, onLogout }) {
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-brand-navy">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
                       </svg>
-                      <span>SAMS Study Notes & PDFs</span>
+                      <span>Study Notes & PDFs</span>
                     </h4>
                     <span className="font-sans text-xs font-bold text-slate-505 hover:text-brand-yellow cursor-pointer transition-colors">View All ↗</span>
                   </div>
@@ -1942,7 +2234,7 @@ export default function StudentDashboard({ token, onLogout }) {
                         </svg>
                       </span>
                       <h5 className="font-display text-sm font-bold text-slate-800 dark:text-slate-200">No Study Materials</h5>
-                      <p className="font-sans text-xs text-slate-400 max-w-sm">No coaching resource PDFs or lecture notes have been published in SAMS yet.</p>
+                      <p className="font-sans text-xs text-slate-400 max-w-sm">No coaching resource PDFs or lecture notes have been published in the system yet.</p>
                     </div>
                   )}
                 </div>
@@ -1991,7 +2283,7 @@ export default function StudentDashboard({ token, onLogout }) {
                             <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-indigo-50 border border-indigo-200/60 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20">Scheduled</span>
                           </div>
                           <p className="font-mono text-xs text-brand-navy dark:text-slate-200 font-bold">{lecture.startTime} - {lecture.endTime}</p>
-                          <p className="font-sans text-[10px] text-slate-400 leading-none mt-1 font-semibold">Room: {lecture.room || "Classroom"} • {lecture.teacherName || "Academy Staff"}</p>
+                          <p className="font-sans text-[10px] text-slate-400 leading-none mt-1 font-semibold">Room: {lecture.room || "Classroom"}</p>
                         </div>
                       ));
                     }
@@ -2315,7 +2607,7 @@ export default function StudentDashboard({ token, onLogout }) {
                       {[
                         { date: "Jan 14", label: "Unit Test 3 (PCM)", dateClass: "bg-red-50 text-brand-red border border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20" },
                         { date: "Jan 18", label: "Physics Electrostatics HW Due", dateClass: "bg-indigo-50 text-indigo-600 border border-indigo-200/50 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20" },
-                        { date: "Jan 20", label: "Parent-Teacher Meeting", dateClass: "bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20" },
+                        { date: "Jan 20", label: "Parent Meeting", dateClass: "bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20" },
                         { date: "Jan 26", label: "Republic Day — Holiday", dateClass: "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" },
                         { date: "Jan 31", label: "Full Mock Test (JEE Pattern)", dateClass: "bg-red-50 text-brand-red border border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20" },
                         { date: "Feb 5", label: "Q4 Fee Due Date", dateClass: "bg-rose-50 text-rose-600 border border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20" },
@@ -2675,9 +2967,9 @@ export default function StudentDashboard({ token, onLogout }) {
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
               <div className="text-left">
                 <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-brand-gold2 bg-brand-yellow/10 px-2 py-0.5 rounded">SECURE CHECKOUT</span>
-                <h3 className="font-display text-sm font-bold uppercase text-brand-navy mt-1.5">SAMS UPI Gateways</h3>
+                <h3 className="font-display text-sm font-bold uppercase text-brand-navy mt-1.5">Secure UPI Gateways</h3>
               </div>
-              <button onClick={() => setPaySimulating(null)} className="text-slate-400 hover:text-slate-650 transition cursor-pointer border-none bg-transparent" aria-label="Close Checkout">
+              <button onClick={() => { setPaySimulating(null); setCustomAmount(""); setPayError(""); setIsPartialPayment(false); }} className="text-slate-400 hover:text-slate-650 transition cursor-pointer border-none bg-transparent" aria-label="Close Checkout">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -2703,7 +2995,41 @@ export default function StudentDashboard({ token, onLogout }) {
                   <div className="w-full border-t border-dashed border-slate-200 my-2"></div>
                   
                   <p className="font-sans text-[10px] text-slate-400 font-bold uppercase tracking-wider">Outstanding Dues Amount:</p>
-                  <p className="font-mono text-xl font-bold text-brand-red">₹{paySimulating.amount.toLocaleString()}</p>
+                  <p className="font-mono text-xl font-bold text-brand-red mb-3">₹{(paySimulating.amount - (paySimulating.amountPaid || 0)).toLocaleString()}</p>
+                  
+                  <div className="flex items-center gap-2 mt-2">
+                    <input 
+                      type="checkbox" 
+                      id="partial-payment-toggle"
+                      checked={isPartialPayment}
+                      onChange={(e) => {
+                        setIsPartialPayment(e.target.checked);
+                        if (!e.target.checked) setPayError("");
+                      }}
+                      className="w-4 h-4 text-brand-navy border-slate-300 rounded focus:ring-brand-navy"
+                    />
+                    <label htmlFor="partial-payment-toggle" className="font-sans text-xs font-semibold text-slate-700 cursor-pointer">
+                      I want to pay a partial amount
+                    </label>
+                  </div>
+
+                  {isPartialPayment && (
+                    <>
+                      <div className="w-full border-t border-dashed border-slate-200 my-3"></div>
+                      <label className="font-sans text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Enter Amount to Pay Now (₹):</label>
+                      <input 
+                        type="number" 
+                        value={customAmount}
+                        onChange={(e) => {
+                          setCustomAmount(e.target.value);
+                          if (payError) setPayError("");
+                        }}
+                        placeholder={(paySimulating.amount - (paySimulating.amountPaid || 0)).toString()}
+                        className={`w-full p-3 border ${payError ? 'border-red-500' : 'border-slate-200'} rounded-xl font-mono text-lg text-slate-900 focus:outline-none focus:border-brand-navy transition-colors`}
+                      />
+                      {payError && <p className="text-red-500 text-xs mt-1.5 font-semibold">{payError}</p>}
+                    </>
+                  )}
                 </div>
                 
                 <button
@@ -2717,6 +3043,108 @@ export default function StudentDashboard({ token, onLogout }) {
           </div>
         </div>
       )}
+
+      {/* Hidden Report Cards for Image Export */}
+      <div style={{ position: "fixed", top: "-9999px", left: "-9999px", pointerEvents: "none" }}>
+        {results && results.map(row => (
+          <div 
+            id={`report-card-${row._id}`} 
+            key={`report-${row._id}`} 
+            style={{ display: "none" }}
+            className="bg-white text-slate-900 p-12 w-[900px] border-[12px] border-[#0f1a30] rounded-xl flex-col font-sans"
+          >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b-[3px] border-[#f1af3c] pb-6 mb-6">
+                 <img src="/logo.png" alt="Logo" className="w-28 h-28 object-contain" />
+                 <div className="text-center flex-1">
+                    <h1 className="text-[44px] font-black text-[#0f1a30] tracking-[0.15em] uppercase m-0 leading-none">Sharda Academy</h1>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-[4px] mt-3">Mankhurd - 43 | Official Score Card</p>
+                 </div>
+                 <div className="w-28"></div> {/* Balance spacer */}
+              </div>
+              
+              {/* Student Info */}
+              <div className="grid grid-cols-2 gap-5 mb-10 bg-slate-50 p-6 rounded-lg border border-slate-200">
+                  <div>
+                     <p className="text-xs font-bold text-slate-400 uppercase mb-1">Student Name</p>
+                     <h3 className="text-xl font-black text-[#0f1a30] uppercase">{data?.student?.name || "N/A"}</h3>
+                  </div>
+                  <div>
+                     <p className="text-xs font-bold text-slate-400 uppercase mb-1">Roll Number</p>
+                     <h3 className="text-xl font-black text-[#0f1a30]">{data?.student?.rollNumber || "N/A"}</h3>
+                  </div>
+                  <div>
+                     <p className="text-xs font-bold text-slate-400 uppercase mb-1">Class / Standard</p>
+                     <h3 className="text-xl font-black text-[#0f1a30]">{data?.student?.classLevel || "N/A"}th Std</h3>
+                  </div>
+                  <div>
+                     <p className="text-xs font-bold text-slate-400 uppercase mb-1">Examination Title</p>
+                     <h3 className="text-xl font-black text-[#0f1a30]">{row.examName}</h3>
+                  </div>
+              </div>
+
+              {/* Marks Table */}
+              <table className="w-full border-collapse mb-10 text-[15px]">
+                 <thead>
+                    <tr className="bg-[#0f1a30] text-white text-sm uppercase tracking-wider">
+                       <th className="py-3 px-5 text-left border border-[#0f1a30]">Subject</th>
+                       <th className="py-3 px-5 text-center border border-[#0f1a30]">Max Marks</th>
+                       <th className="py-3 px-5 text-center border border-[#0f1a30]">Passing Marks</th>
+                       <th className="py-3 px-5 text-center border border-[#0f1a30]">Marks Obtained</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                    {row.marks && row.marks.map((m, idx) => {
+                       const isFail = m.passingMarks ? Number(m.obtained) < Number(m.passingMarks) : Number(m.obtained) < 35;
+                       return (
+                       <tr key={idx} className="border-b border-slate-200 font-medium bg-white">
+                          <td className="py-4 px-5 font-bold border-x border-slate-200">{m.subject}</td>
+                          <td className="py-4 px-5 text-center border-x border-slate-200 text-slate-500 font-mono font-bold">{m.max}</td>
+                          <td className="py-4 px-5 text-center border-x border-slate-200 text-slate-500 font-mono font-bold">{m.passingMarks || 35}</td>
+                          <td className={`py-4 px-5 text-center font-black font-mono border-x border-slate-200 ${isFail ? "text-red-600" : "text-[#0f1a30]"}`}>{m.obtained}</td>
+                       </tr>
+                    )})}
+                 </tbody>
+              </table>
+
+              {/* Final Result Stats */}
+              <div className="flex justify-between items-center bg-[#f1af3c]/10 p-8 rounded-lg border border-[#f1af3c]/40 mb-16">
+                 <div className="text-center">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Total Score</p>
+                    <h2 className="text-3xl font-black text-[#0f1a30] font-mono">{(() => {
+                       let ob = 0, mx = 0;
+                       if (row.marks) row.marks.forEach(m => { ob += Number(m.obtained); mx += Number(m.max); });
+                       return `${ob} / ${mx}`;
+                    })()}</h2>
+                 </div>
+                 <div className="text-center">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Aggregate %</p>
+                    <h2 className="text-4xl font-black text-[#0c46c4] font-mono">{row.percentage}%</h2>
+                 </div>
+                 <div className="text-center">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Final Grade</p>
+                    <h2 className={`text-5xl font-black ${row.grade === "F" ? "text-red-600" : "text-[#10b981]"}`}>{row.grade}</h2>
+                 </div>
+              </div>
+
+              {/* Signatures */}
+              <div className="mt-auto pt-4 flex justify-between items-end px-12 pb-6">
+                 <div className="text-center w-40">
+                    <div className="w-full border-b-2 border-slate-800 mb-3"></div>
+                    <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">Instructor</p>
+                 </div>
+                 <div className="text-center w-40">
+                    <div className="w-full border-b-2 border-slate-800 mb-3"></div>
+                    <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">Parent's Sign</p>
+                 </div>
+                 <div className="text-center w-40">
+                    <div className="w-full border-b-2 border-slate-800 mb-3"></div>
+                    <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">Principal</p>
+                 </div>
+              </div>
+          </div>
+        ))}
+      </div>
 
     </div>
   );
