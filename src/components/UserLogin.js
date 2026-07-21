@@ -87,7 +87,7 @@ export default function UserLogin({ onAuthSuccess }) {
     setMessage("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -123,7 +123,7 @@ export default function UserLogin({ onAuthSuccess }) {
     setMessage("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+      const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -152,7 +152,7 @@ export default function UserLogin({ onAuthSuccess }) {
     setError("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp, newPassword }),
@@ -403,6 +403,15 @@ export default function UserLogin({ onAuthSuccess }) {
               >
                 Forgot Password?
               </button>
+
+              <div className="pt-4 mt-4 border-t border-slate-100">
+                <a
+                  href="http://localhost:3002" // Default admin portal port, can be made dynamic later
+                  className="block w-full text-center text-[10px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-widest transition-colors duration-200"
+                >
+                  Admin Portal Login →
+                </a>
+              </div>
             </form>
           )}
 
@@ -502,7 +511,7 @@ export default function UserLogin({ onAuthSuccess }) {
                       onClick={async () => {
                         setLoading(true); setError(""); setMessage("");
                         try {
-                          const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+                          const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ email }),

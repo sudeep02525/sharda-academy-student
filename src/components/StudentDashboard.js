@@ -469,7 +469,7 @@ export default function StudentDashboard({ token, onLogout }) {
     if (!token) return;
     if (!isSilent) setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/sams/student/dashboard`, {
+      const res = await fetch(`${API_BASE_URL}/student/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.status === 401) {
@@ -572,7 +572,7 @@ export default function StudentDashboard({ token, onLogout }) {
         return;
       }
 
-      const orderRes = await fetch(`${API_BASE_URL}/api/sams/student/fees/${paySimulating._id}/razorpay-order`, {
+      const orderRes = await fetch(`${API_BASE_URL}/student/fees/${paySimulating._id}/razorpay-order`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -601,7 +601,7 @@ export default function StudentDashboard({ token, onLogout }) {
           // 3. Verify Payment
           try {
             setLoading(true);
-            const verifyRes = await fetch(`${API_BASE_URL}/api/sams/student/fees/${paySimulating._id}/razorpay-verify`, {
+            const verifyRes = await fetch(`${API_BASE_URL}/student/fees/${paySimulating._id}/razorpay-verify`, {
               method: "POST",
               headers: { 
                 "Content-Type": "application/json",
@@ -687,7 +687,7 @@ export default function StudentDashboard({ token, onLogout }) {
     setOtpError("");
     setOtpSuccess("");
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+      const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.student.email })
@@ -725,7 +725,7 @@ export default function StudentDashboard({ token, onLogout }) {
     setOtpError("");
     setOtpSuccess("");
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.student.email, otp: otpCodeInput, newPassword })
@@ -764,7 +764,7 @@ export default function StudentDashboard({ token, onLogout }) {
     setOtpError("");
     setOtpSuccess("");
     try {
-      const res = await fetch(`${API_BASE_URL}/api/sams/student/change-password`, {
+      const res = await fetch(`${API_BASE_URL}/student/change-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
