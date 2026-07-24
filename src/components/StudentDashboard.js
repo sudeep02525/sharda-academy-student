@@ -114,7 +114,7 @@ export default function StudentDashboard({ token, onLogout }) {
       // Create local notice format
       const localNotice = {
         id: notice._id,
-        type: notice.category === "General" ? "Announcements" : notice.category === "Student" ? "Class Updates" : notice.category,
+        type: notice.category === "General" ? "Announcements" : notice.category === "Student" ? "Class Updates" : (notice.category || "Announcements"),
         title: notice.title,
         desc: notice.content,
         date: new Date(notice.date || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
@@ -515,7 +515,7 @@ export default function StudentDashboard({ token, onLogout }) {
         setNotificationsDb(resData.notices && resData.notices.length > 0
           ? resData.notices.map(n => ({
               id: n._id,
-              type: n.category === "General" ? "Announcements" : n.category === "Student" ? "Class Updates" : n.category,
+              type: n.category === "General" ? "Announcements" : n.category === "Student" ? "Class Updates" : (n.category || "Announcements"),
               title: n.title,
               desc: n.content,
               date: new Date(n.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
@@ -806,7 +806,10 @@ export default function StudentDashboard({ token, onLogout }) {
           <div className="w-14 h-14 bg-red-50 text-brand-red rounded-full flex items-center justify-center text-2xl mx-auto border border-red-100 shadow-sm animate-bounce">⚠️</div>
           <h3 className="text-sm font-black text-brand-red uppercase tracking-wider">System Connection Failure</h3>
           <p className="text-xs text-slate-500 font-semibold leading-relaxed">{error}</p>
-          <button onClick={() => window.location.reload()} className="w-full py-3.5 text-xs font-black text-white bg-brand-blue hover:bg-slate-800 rounded-xl shadow-md transition-all active:scale-95 duration-200 cursor-pointer">RETRY SECURE SESSION</button>
+          <div className="flex flex-col gap-3">
+            <button onClick={() => window.location.reload()} className="w-full py-3.5 text-xs font-black text-white bg-brand-blue hover:bg-slate-800 rounded-xl shadow-md transition-all active:scale-95 duration-200 cursor-pointer">RETRY SECURE SESSION</button>
+            <button onClick={onLogout} className="w-full py-3.5 text-xs font-black text-brand-red bg-red-50 hover:bg-red-100 rounded-xl transition-all active:scale-95 duration-200 cursor-pointer">LOGOUT</button>
+          </div>
         </div>
       </div>
     );
@@ -1194,7 +1197,7 @@ export default function StudentDashboard({ token, onLogout }) {
                     {(() => {
                       const todayWeekday = new Date().toLocaleDateString('en-US', { weekday: 'long' });
                       const todaysClasses = timetable && timetable.length > 0 
-                        ? timetable.filter(item => item.day.toLowerCase() === todayWeekday.toLowerCase())
+                        ? timetable.filter(item => item.day?.toLowerCase() === todayWeekday.toLowerCase())
                         : [];
                       
                       if (todaysClasses.length > 0) {
@@ -2272,7 +2275,7 @@ export default function StudentDashboard({ token, onLogout }) {
                   {(() => {
                     const todayWeekdayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
                     const scheduleTodayClasses = timetable && timetable.length > 0 
-                      ? timetable.filter(item => item.day.toLowerCase() === todayWeekdayName.toLowerCase())
+                      ? timetable.filter(item => item.day?.toLowerCase() === todayWeekdayName.toLowerCase())
                       : [];
                     
                     if (scheduleTodayClasses.length > 0) {
@@ -2335,7 +2338,7 @@ export default function StudentDashboard({ token, onLogout }) {
                               <tr key={idx} className="hover:bg-slate-50/10 dark:hover:bg-white/5 transition-all">
                                 <td className="py-3 px-2 text-left text-slate-450 dark:text-slate-400 font-mono text-xs font-bold">{slot}</td>
                                 {daysOfWeek.map((day) => {
-                                  const matches = timetable.filter(t => `${t.startTime} - ${t.endTime}` === slot && t.day.toLowerCase() === day.toLowerCase());
+                                  const matches = timetable.filter(t => `${t.startTime} - ${t.endTime}` === slot && t.day?.toLowerCase() === day.toLowerCase());
                                   const val = matches.length > 0 ? matches.map(m => m.subject).join(", ") : "--";
                                   let badgeStyle = "text-slate-400 dark:text-slate-600";
                                   
@@ -2927,10 +2930,10 @@ export default function StudentDashboard({ token, onLogout }) {
                         const profileSubjectAverages = Object.keys(subjectTotals).map(subj => {
                           const avg = Math.round((subjectTotals[subj].obtained / subjectTotals[subj].max) * 100);
                           let barColor = "bg-blue-500";
-                          if (subj.toLowerCase().includes("chemistry")) barColor = "bg-emerald-500";
-                          else if (subj.toLowerCase().includes("mathematics") || subj.toLowerCase().includes("maths")) barColor = "bg-purple-500";
-                          else if (subj.toLowerCase().includes("biology")) barColor = "bg-orange-500";
-                          else if (subj.toLowerCase().includes("english")) barColor = "bg-red-500";
+                          if (subj?.toLowerCase().includes("chemistry")) barColor = "bg-emerald-500";
+                          else if (subj?.toLowerCase().includes("mathematics") || subj?.toLowerCase().includes("maths")) barColor = "bg-purple-500";
+                          else if (subj?.toLowerCase().includes("biology")) barColor = "bg-orange-500";
+                          else if (subj?.toLowerCase().includes("english")) barColor = "bg-red-500";
                           return { label: subj, val: avg, color: barColor };
                         });
 
