@@ -1,5 +1,5 @@
 import "./globals.css";
-import NotificationListener from "../components/NotificationListener";
+import NotificationListener from "@/components/NotificationListener";
 
 export const metadata = {
   title: "Student Dashboard | Sharda Academy Portal",
@@ -8,6 +8,10 @@ export const metadata = {
     icon: "/logo_cropped.png",
     shortcut: "/logo_cropped.png",
     apple: "/logo_cropped.png",
+  },
+  robots: {
+    index: false,
+    follow: false,
   },
 };
 

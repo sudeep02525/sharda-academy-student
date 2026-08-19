@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -332,8 +335,8 @@ export default function UserLogin({ onAuthSuccess }) {
             </div>
           )}
           {message && (
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 border border-brand-yellow/30 text-xs font-semibold text-brand-yellow-dark w-full">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4 text-brand-yellow-dark shrink-0 mt-0.5">
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-amber-50 border border-brand-yellow/30 text-xs font-medium text-slate-700 w-full">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-4 h-4 text-brand-yellow-dark shrink-0">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
               </svg>
               <span>{message}</span>
@@ -351,7 +354,7 @@ export default function UserLogin({ onAuthSuccess }) {
                   <input
                     type="email" required
                     value={email} onChange={e=>setEmail(e.target.value)}
-                    placeholder="e.g. pooja@sharda.com"
+                    placeholder="student@gmail.com"
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#f1af3c] focus:ring-1 focus:ring-[#f1af3c]/50 transition-all"
                   />
                 </div>
@@ -405,12 +408,12 @@ export default function UserLogin({ onAuthSuccess }) {
               </button>
 
               <div className="pt-4 mt-4 border-t border-slate-100">
-                <a
-                  href="http://localhost:3002" // Default admin portal port, can be made dynamic later
+                <Link
+                  href="/admin" 
                   className="block w-full text-center text-[10px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-widest transition-colors duration-200"
                 >
                   Admin Portal Login →
-                </a>
+                </Link>
               </div>
             </form>
           )}
@@ -430,7 +433,7 @@ export default function UserLogin({ onAuthSuccess }) {
                   <input
                     type="email" required
                     value={email} onChange={e=>setEmail(e.target.value)}
-                    placeholder="e.g. pooja@sharda.com"
+                    placeholder="student@gmail.com"
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#f1af3c] focus:ring-1 focus:ring-[#f1af3c]/50 transition-all"
                   />
                 </div>

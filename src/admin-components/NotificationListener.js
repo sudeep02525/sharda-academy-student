@@ -53,7 +53,7 @@ export default function NotificationListener() {
 
   useEffect(() => {
     // Only connect if we are logged in
-    const storedToken = localStorage.getItem("user_token");
+    const storedToken = localStorage.getItem("admin_token");
     if (!storedToken) return;
     
     // 2. Connect to Socket.io backend
@@ -70,7 +70,7 @@ export default function NotificationListener() {
       // Show Beautiful In-App Toast
       toast((t) => (
         <div className="flex items-center gap-4 min-w-[280px]">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-sm border border-indigo-100">
+          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-sm border border-green-100">
             <span className="text-2xl">{emoji}</span>
           </div>
           <div className="flex flex-col">
@@ -95,36 +95,9 @@ export default function NotificationListener() {
       }
     };
 
-    socket.on("new_notice", (data) => {
-      console.log("New notice:", data);
-      triggerNotification("New Notice Added!", `Check out the latest notice: ${data.title || "New updates available"}`, "📢");
-    });
-
-    socket.on("new_homework", (data) => {
-      console.log("New homework:", data);
-      triggerNotification("New Homework Assigned!", `Homework for subject: ${data.subject || "Unknown"}`, "📚");
-    });
-
-    socket.on("new_fee", (data) => {
-      // Typically new_fee is targeted to a specific student, but the backend emits it globally currently
-      // Ideally we would filter: if (data.studentId !== myStudentId) return;
-      console.log("New fee request:", data);
-      triggerNotification("New Fee Payment Required", `A fee record of ₹${data.amount || "0"} has been added.`, "💰");
-    });
-
     socket.on("fee_paid", (data) => {
-      console.log("Fee paid event:", data);
-      
-      const storedUserStr = localStorage.getItem("user_details");
-      if (storedUserStr) {
-        try {
-          const user = JSON.parse(storedUserStr);
-          // Optional: Only show notification if it belongs to this student
-          // if (data.studentId !== user._id) return;
-        } catch (e) {}
-      }
-      
-      triggerNotification("Payment Successful!", `Your payment of ₹${data.amountPaid || "0"} has been recorded. Status: ${data.status}`, "✅");
+      console.log("Fee paid:", data);
+      triggerNotification("Fee Payment Received", `Student ID ${data.studentId || "unknown"} just paid ₹${data.amountPaid || data.amount || "0"}.`, "✅");
     });
 
     return () => {

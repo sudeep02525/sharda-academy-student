@@ -1,20 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { generateReceiptPDF } from "../utils/generateReceipt";
 import html2canvas from "html2canvas";
 import { io } from "socket.io-client";
-const getStudentSidebarIcon = (id, className) => {
-  switch (id) {
+import { API_BASE_URL } from "@/utils/config";
+
+const getIcon = (type, className) => {
+  switch (type) {
     case "overview":
       return (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25a2.25 2.25 0 0 1-2.25 2.25h-2.25A2.25 2.25 0 0 1 13.5 8.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-        </svg>
-      );
-    case "attendance":
-      return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a14.805 14.805 0 0 0 1.586 6.74M15.01 1.777a8.962 8.962 0 0 1 3.74 2.235M8.457 20.278a14.887 14.887 0 0 1-2.715-3.328M11.662 2.011a8.968 8.968 0 0 1 3.2 1.53m-7.817 14.3a14.852 14.852 0 0 1-1.047-3.473M10.5 8.5a1.5 1.5 0 1 1 3 0v4.882c0 .866-.491 1.652-1.258 2.002L10.5 16.5M9 10.5a3 3 0 0 1 6 0v2.882c0 .577.327 1.101.839 1.335l.661.303" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
         </svg>
       );
     case "fees":
@@ -58,7 +55,7 @@ const getStudentSidebarIcon = (id, className) => {
   }
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 
 export default function StudentDashboard({ token, onLogout }) {
   const [data, setData] = useState(null);
@@ -392,78 +389,14 @@ export default function StudentDashboard({ token, onLogout }) {
     }
   };
 
-  const handlePrintReceipt = (invoice) => {
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Tuition Fee Receipt - ${invoice.invoiceId}</title>
-          <style>
-            body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 40px; color: #1e293b; background: #faf9f6; }
-            .receipt-card { max-width: 600px; margin: 0 auto; background: #ffffff; border: 2px solid #1a2e5a; border-radius: 16px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-            .header { text-align: center; border-bottom: 3px solid #f5c842; padding-bottom: 20px; margin-bottom: 20px; }
-            .header h1 { color: #1a2e5a; margin: 0; font-size: 24px; font-weight: 900; letter-spacing: 2px; }
-            .header p { margin: 5px 0 0; font-size: 11px; color: #dc2626; font-weight: bold; letter-spacing: 2px; }
-            .title { text-align: center; text-transform: uppercase; font-size: 14px; font-weight: 800; color: #1a2e5a; margin-bottom: 25px; letter-spacing: 1px; }
-            .details-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            .details-table td { padding: 10px 0; border-bottom: 1px solid #edf2f7; font-size: 13px; }
-            .details-table td.label { color: #64748b; font-weight: 600; width: 150px; }
-            .details-table td.value { color: #0f172a; font-weight: 700; text-align: right; }
-            .total-row { background: #f8fafc; font-size: 15px; font-weight: 800; color: #1a2e5a; }
-            .total-row td { padding: 15px 10px; border-bottom: none; }
-            .footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
-          </style>
-        </head>
-        <body>
-          <div class="receipt-card">
-            <div class="header">
-              <h1>SHARDA ACADEMY</h1>
-              <p>PORTAL TUITION FEE RECEIPT</p>
-            </div>
-            <div class="title">OFFICIAL PAYMENT RECEIPT</div>
-            <table class="details-table">
-              <tr>
-                <td class="label">Invoice ID</td>
-                <td class="value">${invoice.invoiceId}</td>
-              </tr>
-              <tr>
-                <td class="label">Student Name</td>
-                <td class="value">${data?.student?.name || "Student"}</td>
-              </tr>
-              <tr>
-                <td class="label">Class & Section</td>
-                <td class="value">Standard ${data?.student?.classLevel || "N/A"} ${data?.student?.stream ? `(${data?.student?.stream})` : ""}</td>
-              </tr>
-              <tr>
-                <td class="label">Description</td>
-                <td class="value">${invoice.description}</td>
-              </tr>
-              <tr>
-                <td class="label">Payment Date</td>
-                <td class="value">${invoice.paymentDate ? new Date(invoice.paymentDate).toLocaleString() : "N/A"}</td>
-              </tr>
-              <tr>
-                <td class="label">Payment Method</td>
-                <td class="value">${invoice.paymentMethod || "UPI / Card sync"}</td>
-              </tr>
-              <tr class="total-row">
-                <td>Amount Paid</td>
-                <td style="text-align: right;">₹${invoice.amount.toLocaleString()}</td>
-              </tr>
-            </table>
-            <div class="footer">
-              Thank you for your payment. This is a computer-generated transaction record and requires no physical signature.<br>
-              © ${new Date().getFullYear()} Sharda Academy
-            </div>
-          </div>
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+  const handlePrintReceipt = (receipt) => {
+    generateReceiptPDF(receipt, {
+      name: data?.student?.name || "Student",
+      rollNumber: data?.student?.rollNumber || "N/A"
+    });
   };
+
+  const [receipts, setReceipts] = useState([]);
 
   const fetchData = async (isSilent = false) => {
     if (!token) return;
@@ -472,11 +405,22 @@ export default function StudentDashboard({ token, onLogout }) {
       const res = await fetch(`${API_BASE_URL}/student/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.status === 401) {
+      
+      const receiptsRes = await fetch(`${API_BASE_URL}/student/receipts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.status === 401 || receiptsRes.status === 401) {
         onLogout();
         return;
       }
       const resData = await res.json();
+      const receiptsData = await receiptsRes.json();
+      
+      if (receiptsData.success) {
+        setReceipts(receiptsData.data);
+      }
+
       if (resData.success) {
         setData(resData);
         setHomeworkList(resData.homework && resData.homework.length > 0
@@ -564,8 +508,7 @@ export default function StudentDashboard({ token, onLogout }) {
       // 1. Create Order
       const remainingBalance = paySimulating.amount - (paySimulating.amountPaid || 0);
       const amountToPay = isPartialPayment && customAmount && !isNaN(customAmount) && Number(customAmount) > 0 ? Number(customAmount) : remainingBalance;
-
-      const minAllowed = Math.min(4000, remainingBalance);
+      const minAllowed = Math.min(100, remainingBalance); // allowing min 100 Rs for testing
       if (amountToPay < minAllowed) {
         setPayError(`Minimum payment amount is ₹${minAllowed.toLocaleString()}`);
         setLoading(false);
@@ -578,7 +521,7 @@ export default function StudentDashboard({ token, onLogout }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}` 
         },
-        body: JSON.stringify({ amountToPay })
+        body: JSON.stringify({ amount: amountToPay })
       });
       const orderData = await orderRes.json();
 
@@ -610,7 +553,8 @@ export default function StudentDashboard({ token, onLogout }) {
               body: JSON.stringify({
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
+                razorpay_signature: response.razorpay_signature,
+                paidAmount: amountToPay
               })
             });
             const verifyData = await verifyRes.json();
@@ -904,7 +848,7 @@ export default function StudentDashboard({ token, onLogout }) {
                     : "text-slate-100 hover:text-[#f1af3c] hover:bg-white/10 hover:translate-x-0.5 border-l-2 border-transparent hover:border-[#f1af3c]"
                 }`}
               >
-                {getStudentSidebarIcon(t.id, `h-5 w-5 transition-colors ${isActive ? "text-[#0a1835]" : "text-slate-300 group-hover:text-[#f1af3c]"}`)}
+                {getIcon(t.id, `h-5 w-5 transition-colors ${isActive ? "text-[#0a1835]" : "text-slate-300 group-hover:text-[#f1af3c]"}`)}
                 <span>{t.label.toUpperCase()}</span>
               </button>
             );
@@ -1526,7 +1470,7 @@ export default function StudentDashboard({ token, onLogout }) {
                 
                 {/* 1. Total Paid Card */}
                 {(() => {
-                  const totalPaid = fees.filter(f => f.status === "Paid").reduce((acc, f) => acc + f.amount, 0);
+                  const totalPaid = fees.reduce((acc, f) => acc + (f.amountPaid || 0), 0);
                   const totalPaidInstallments = fees.filter(f => f.status === "Paid").length;
                   return (
                     <div className="p-5 premium-glass-card text-left flex justify-between items-center shadow-sm">
@@ -1567,7 +1511,7 @@ export default function StudentDashboard({ token, onLogout }) {
 
                 {/* 3. Total Course Fee progression */}
                 {(() => {
-                  const totalPaid = fees.filter(f => f.status === "Paid").reduce((acc, f) => acc + f.amount, 0);
+                  const totalPaid = fees.reduce((acc, f) => acc + (f.amountPaid || 0), 0);
                   const totalCourseFee = fees.reduce((acc, f) => acc + f.amount, 0);
                   const paidPercent = totalCourseFee > 0 ? Math.round((totalPaid / totalCourseFee) * 100) : 0;
                   return (
@@ -1603,47 +1547,40 @@ export default function StudentDashboard({ token, onLogout }) {
                     <span className="font-sans text-xs font-bold text-slate-400 hover:text-brand-yellow cursor-pointer transition-colors">Download Receipt ↗</span>
                   </div>
 
-                  {fees && fees.length > 0 ? (
+                  {receipts && receipts.length > 0 ? (
                     <div className="overflow-x-auto w-full">
                       <table className="w-full text-xs text-left border-collapse">
                         <thead>
                           <tr className="border-b border-slate-200/60 dark:border-slate-800/30 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                            <th className="py-3 px-3">Transaction ID</th>
-                            <th className="py-3 px-3">Period</th>
+                            <th className="py-3 px-3">Receipt No</th>
                             <th className="py-3 px-3">Date</th>
                             <th className="py-3 px-3">Mode</th>
+                            <th className="py-3 px-3">Txn / Ref</th>
                             <th className="py-3 px-3">Amount</th>
-                            <th className="py-3 px-3 text-center">Status</th>
+                            <th className="py-3 px-3 text-center">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800/30 font-semibold text-slate-700 dark:text-slate-350">
-                          {fees.map((row, idx) => (
+                          {receipts.map((row, idx) => (
                             <tr key={row._id || idx} className="hover:bg-slate-50/10 transition-all">
-                              <td className="py-3.5 px-3 font-mono text-xs text-slate-900 dark:text-white font-bold">{row.invoiceId}</td>
-                              <td className="py-3.5 px-3">{row.description}</td>
+                              <td className="py-3.5 px-3 font-mono text-xs text-slate-900 dark:text-white font-bold">{row.receiptNumber}</td>
                               <td className="py-3.5 px-3 font-mono text-xs text-slate-450 font-medium">
-                                {row.status === "Paid" && row.paymentDate ? new Date(row.paymentDate).toLocaleDateString() : `Due ${row.dueDate}`}
+                                {new Date(row.paymentDate).toLocaleDateString()}
                               </td>
-                              <td className="py-3.5 px-3 text-slate-500 font-medium">{row.paymentMethod || "--"}</td>
-                              <td className="py-3.5 px-3 font-mono font-bold text-slate-900 dark:text-white">₹{(row.amount || 0).toLocaleString()}</td>
+                              <td className="py-3.5 px-3 text-slate-500 font-medium">{row.paymentMode || "Online"}</td>
+                              <td className="py-3.5 px-3 font-mono text-[10px] text-slate-500">{row.transactionId || row.collectedBy || "--"}</td>
+                              <td className="py-3.5 px-3 font-mono font-bold text-slate-900 dark:text-white">₹{(row.amountPaid || 0).toLocaleString()}</td>
                               <td className="py-3.5 px-3 text-center flex items-center justify-center gap-2">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                                  row.status === "Paid" 
-                                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200/50 dark:bg-emerald-500/10 dark:text-emerald-400" 
-                                    : "bg-red-50 text-brand-red border border-red-200/50 dark:bg-red-500/10 dark:text-rose-450"
-                                }`}>{row.status}</span>
-                                {row.status === "Paid" && (
-                                  <button
-                                    onClick={() => handlePrintReceipt(row)}
-                                    className="px-2 py-1.5 text-[8px] font-black uppercase text-[#0a1835] bg-brand-yellow hover:bg-amber-400 border border-transparent rounded shadow-sm transition duration-200 cursor-pointer flex items-center gap-1"
-                                    title="Print Receipt"
-                                  >
-                                    <span>Receipt</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-2.5 h-2.5">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                    </svg>
-                                  </button>
-                                )}
+                                <button
+                                  onClick={() => handlePrintReceipt(row)}
+                                  className="px-2 py-1.5 text-[8px] font-black uppercase text-[#0a1835] bg-brand-yellow hover:bg-amber-400 border border-transparent rounded shadow-sm transition duration-200 cursor-pointer flex items-center gap-1"
+                                  title="Print Receipt"
+                                >
+                                  <span>Receipt</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-2.5 h-2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                  </svg>
+                                </button>
                               </td>
                             </tr>
                           ))}
@@ -2888,7 +2825,7 @@ export default function StudentDashboard({ token, onLogout }) {
                         : 0;
 
                       const totalFeesAmount = fees ? fees.reduce((acc, f) => acc + f.amount, 0) : 0;
-                      const totalPaidFees = fees ? fees.filter(f => f.status === "Paid").reduce((acc, f) => acc + f.amount, 0) : 0;
+                      const totalPaidFees = fees ? fees.reduce((acc, f) => acc + (f.amountPaid || 0), 0) : 0;
                       const feesSettledPercent = totalFeesAmount > 0 ? Math.round((totalPaidFees / totalFeesAmount) * 100) : 0;
 
                       return (

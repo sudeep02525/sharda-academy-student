@@ -1,0 +1,294 @@
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Brand Colors - Sharda Academy */
+  --color-navy: #0a1835;
+  --color-navy-light: #0f2347;
+  --color-navy-dark: #060f22;
+  --color-gold: #f1af3c;
+  --color-gold-dark: #d97706;
+  --color-gold-light: #fef3c7;
+  --color-beige: #faf9f6;
+  --color-beige-dark: #f4f1ea;
+  
+  /* Semantic Colors */
+  --color-success: #10b981;
+  --color-success-light: #d1fae5;
+  --color-error: #ef4444;
+  --color-error-light: #fee2e2;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+  
+  /* Text Colors */
+  --color-text-primary: #0f1a30;
+  --color-text-secondary: #5e6675;
+  --color-text-tertiary: #94a3b8;
+
+  /* Brand utility colors (used as bg-brand-blue, bg-brand-yellow etc.) */
+  --color-brand-blue: #0a1835;
+  --color-brand-yellow: #f1af3c;
+  --color-brand-beige: #faf9f6;
+  
+  /* ⚠️ Tailwind v4: DO NOT define --spacing-N keys here.
+     v4 uses a single --spacing multiplier (default 0.25rem).
+     Named spacing keys break the entire spacing scale.
+     Custom spacing is handled via CSS vars in :root below. */
+  
+  /* Font Families */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM THEME BRAND SYSTEM — Sync with Main Landing Page
+   Primary:   Deep Navy  #0a1835 (Sidebars, Headers)
+   Secondary: Gold Yellow #f1af3c (Active states)
+   BG:        Warm Beige #faf9f6 (Body background)
+   Card BG:   Pure White #ffffff (Dashboard Cards)
+   Text Navy: #0f1a30
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --primary-blue: #0a1835;
+  --secondary-yellow: #f1af3c;
+  --accent-red: #dc2626;
+
+  /* Light mode — warm beige background, not dark grey */
+  --background: #faf9f6;
+  --foreground: #0f1a30;
+  
+  --card-bg: #ffffff;
+  --card-border: rgba(10, 24, 53, 0.08);
+  --glow-color: rgba(241, 175, 60, 0.1);
+  --text-primary: #0f1a30;
+  --text-secondary: #5e6675;
+  --text-tertiary: #94a3b8;
+  --dot-color: rgba(10, 24, 53, 0.06);
+  --input-bg: #ffffff;
+  --input-border: rgba(10, 24, 53, 0.12);
+  --input-text: #0f1a30;
+  --header-bg: #0a1835;
+  --header-text: #ffffff;
+  --sidebar-bg: #0a1835;
+  --sidebar-text: #ffffff;
+}
+
+.dark {
+  --background: #0B1120;
+  --foreground: #F9FAFB;
+  
+  --card-bg: #131C2E;
+  --card-border: #243145;
+  --glow-color: rgba(244, 182, 61, 0.15);
+  --text-primary: #F9FAFB;
+  --text-secondary: #CBD5E1;
+  --text-tertiary: #94A3B8;
+  --dot-color: rgba(255, 255, 255, 0.03);
+  --input-bg: #162033;
+  --input-border: #2A3950;
+  --input-text: #F9FAFB;
+  --header-bg: #081226;
+  --header-text: #F9FAFB;
+  --sidebar-bg: #081226;
+  --sidebar-text: #F9FAFB;
+}
+
+/* Enforce the exact typography font sizes, families, and weights from the main website */
+body {
+  color: var(--text-primary) !important;
+  background-color: var(--background) !important;
+  background: var(--background) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 13.5px !important;
+  overflow-x: hidden;
+}
+
+/* Noise texture overlay */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' filter-opacity='0.035' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grid dot bg */
+.dotbg {
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Input Focus Glow from Main Site */
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: #f1af3c !important;
+  box-shadow: 0 0 0 3px rgba(241, 175, 60, 0.18) !important;
+}
+
+.dark input:focus, .dark select:focus, .dark textarea:focus {
+  outline: none !important;
+  border-color: #f1af3c !important;
+  box-shadow: 0 0 0 3px rgba(241, 175, 60, 0.45) !important;
+}
+
+/* Sidebar Styling: Needs to look like the main website's header (Deep Navy with gold/white accents) */
+aside {
+  background: var(--sidebar-bg) !important;
+  color: var(--sidebar-text) !important;
+  border-right: 1px solid var(--card-border) !important;
+  box-shadow: 4px 0 25px rgba(6, 15, 34, 0.15) !important;
+}
+
+/* Header Styling: Matches sidebar navy for unified dark frame */
+header {
+  background-color: var(--header-bg) !important;
+  color: var(--header-text) !important;
+  border-bottom: 2.5px solid #f1af3c !important;
+  box-shadow: 0 2px 10px rgba(6, 15, 34, 0.15) !important;
+}
+
+
+header h2 {
+  color: var(--header-text) !important;
+}
+
+/* Enforce dark text inside white cards / forms */
+main div[class*="bg-white"] {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 20px rgba(10, 24, 53, 0.03) !important;
+}
+
+/* Additional specific card override for dark mode */
+.dark main div[class*="bg-white"],
+.dark div[class*="bg-white"],
+.dark .bg-white {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--card-border) !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700,
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-slate-400,
+.dark .text-gray-600,
+.dark .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .text-slate-300,
+.dark .text-gray-400 {
+  color: var(--text-tertiary) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--input-bg) !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: var(--card-border) !important;
+}
+
+/* Fix text colors for labels and headers to match the main site */
+label {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+}
+
+h3, h4, h5 {
+  color: var(--text-primary) !important;
+}
+
+/* Solid Brand Backgrounds */
+.gradient-brand-header {
+  background: var(--header-bg) !important;
+}
+
+.gradient-brand-accent {
+  background: #ef4444 !important;
+}
+
+.gradient-brand-yellow {
+  background: #f1af3c !important;
+}
+
+/* Micro-animations */
+.hover-glow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.hover-glow:hover {
+  box-shadow: 0 8px 30px rgba(241, 175, 60, 0.15) !important;
+  border-color: rgba(241, 175, 60, 0.4) !important;
+  transform: translateY(-2.5px) !important;
+}
+
+/* Custom brand color utilities
+   Note: text-navy, text-gold, bg-brand-blue, bg-brand-yellow are also
+   generated by Tailwind via @theme --color-* definitions above.
+   These manual overrides ensure the correct values in all cases. */
+.text-navy { color: #0a1835 !important; }
+.dark .text-navy { color: #f9fafb !important; }
+.text-gold { color: #f1af3c !important; }
+.bg-brand-blue { background-color: #0a1835; }
+.bg-brand-yellow { background-color: #f1af3c; }
+/* bg-brand-beige is a Tailwind utility via @theme --color-brand-beige */
+
+/* Premium Global Input & Form Control Theme Overrides */
+input, select, textarea {
+  background-color: var(--input-bg) !important;
+  background: var(--input-bg) !important;
+  border: 1.5px solid var(--input-border) !important;
+  color: var(--input-text) !important;
+  border-radius: 10px !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+/* Premium Tailwind Slate Class Alignment */
+.border-slate-200, .border-slate-100 {
+  border-color: var(--card-border) !important;
+}
+.text-slate-500 {
+  color: var(--text-secondary) !important;
+}
+.text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
+.theme-toggle-btn {
+  transition: all 0.3s ease !important;
+}
+
+.theme-toggle-btn:hover {
+  border-color: #F4B63D !important;
+  box-shadow: 0 0 10px rgba(244, 182, 61, 0.3) !important;
+}
+
+/* Hide scrollbar utility class */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}

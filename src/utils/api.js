@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+import { API_BASE_URL } from "@/utils/config";
+
 // Default base URL fallback if env var is missing
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
