@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/logo_cropped.png" type="image/png" />
+        <link rel="icon" href="https://res.cloudinary.com/ybzctfb3/image/upload/v1784214512/sharda-academy/uploads/chl3yks6plrwp1ufvdkc.png" type="image/png" />
       </head>
       <body style={{ margin: 0, padding: 0 }}>
         {children}

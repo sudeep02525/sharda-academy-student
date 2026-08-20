@@ -6,9 +6,9 @@ export const metadata = {
   description:
     "Official administration portal and database manager dashboard of Sharda Academy.",
   icons: {
-    icon: "/logo_cropped.png",
-    shortcut: "/logo_cropped.png",
-    apple: "/logo_cropped.png",
+    icon: "https://res.cloudinary.com/ybzctfb3/image/upload/v1784214512/sharda-academy/uploads/chl3yks6plrwp1ufvdkc.png",
+    shortcut: "https://res.cloudinary.com/ybzctfb3/image/upload/v1784214512/sharda-academy/uploads/chl3yks6plrwp1ufvdkc.png",
+    apple: "https://res.cloudinary.com/ybzctfb3/image/upload/v1784214512/sharda-academy/uploads/chl3yks6plrwp1ufvdkc.png",
   },
   robots: {
     index: false,
