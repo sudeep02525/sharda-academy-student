@@ -301,7 +301,7 @@ export default function UserLogin({ onAuthSuccess }) {
       </div>
 
       {/* 📝 Right Panel: Sign-in Section */}
-      <div className="col-span-12 lg:col-span-6 flex flex-col justify-center items-center p-6 sm:p-12 relative z-10">
+      <div className="col-span-12 lg:col-span-6 flex flex-col justify-center items-center min-h-screen lg:min-h-0 p-6 sm:p-12 relative z-10">
         
         {/* Mobile Header Branding (Shown only on small screens) */}
         <div className="flex flex-col items-center mb-6 text-center lg:hidden">
