@@ -53,7 +53,7 @@ export default function NotificationListener() {
 
   useEffect(() => {
     // Only connect if we are logged in
-    const storedToken = localStorage.getItem("user_token");
+    const storedToken = null /* handled by httpOnly cookie */;
     if (!storedToken) return;
     
     // 2. Connect to Socket.io backend

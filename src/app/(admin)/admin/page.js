@@ -615,6 +615,7 @@ export default function AdminPortal() {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/analytics`, {
+        credentials: "include",
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (res.status === 401) {
@@ -650,6 +651,7 @@ export default function AdminPortal() {
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -688,6 +690,7 @@ export default function AdminPortal() {
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -718,6 +721,7 @@ export default function AdminPortal() {
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp, newPassword }),
@@ -758,6 +762,7 @@ export default function AdminPortal() {
     setSimSuccess("");
     try {
       const res = await fetch(`${API_BASE_URL}/admin/biometric-sync`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -800,6 +805,7 @@ export default function AdminPortal() {
       }
 
       const res = await fetch(`${API_BASE_URL}/admin/users`, {
+        credentials: "include",
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -847,6 +853,7 @@ export default function AdminPortal() {
     setMessage("");
     try {
       const res = await fetch(`${API_BASE_URL}/admin/homework`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -893,6 +900,7 @@ export default function AdminPortal() {
       const res = await fetch(
         `${API_BASE_URL}/admin/study-materials`,
         {
+        credentials: "include",
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -937,6 +945,7 @@ export default function AdminPortal() {
     setMessage("");
     try {
       const res = await fetch(`${API_BASE_URL}/admin/attendance`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -969,6 +978,7 @@ export default function AdminPortal() {
       const res = await fetch(
         `${API_BASE_URL}/admin/fees/remind/${invoiceId}`,
         {
+        credentials: "include",
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -1011,6 +1021,7 @@ export default function AdminPortal() {
 
     try {
       const res = await fetch(`${API_BASE_URL}/admin/results`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1052,6 +1063,7 @@ export default function AdminPortal() {
     setMessage("");
     try {
       const res = await fetch(`${API_BASE_URL}/admin/notices`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1097,6 +1109,7 @@ export default function AdminPortal() {
         setLoading(true);
         try {
           await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+        credentials: "include",
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -1162,6 +1175,7 @@ export default function AdminPortal() {
       const res = await fetch(
         `${API_BASE_URL}/admin/users/${editingStudent._id}`,
         {
+        credentials: "include",
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -1194,6 +1208,7 @@ export default function AdminPortal() {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/fees`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1241,6 +1256,7 @@ export default function AdminPortal() {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/fees/${paymentModal.feeId}`, {
+        credentials: "include",
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -1273,6 +1289,7 @@ export default function AdminPortal() {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/timetables`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1308,6 +1325,7 @@ export default function AdminPortal() {
       const res = await fetch(
         `${API_BASE_URL}/admin/admissions/${id}`,
         {
+        credentials: "include",
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

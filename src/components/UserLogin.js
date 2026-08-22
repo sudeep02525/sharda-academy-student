@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-
-
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function UserLogin({ onAuthSuccess }) {
   const [email, setEmail] = useState("");
@@ -81,6 +81,39 @@ export default function UserLogin({ onAuthSuccess }) {
   // Clean up timer on unmount
   useEffect(() => () => { if (resendIntervalRef.current) clearInterval(resendIntervalRef.current); }, []);
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/google`, {
+        credentials: "include",
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ idToken: credentialResponse.credential }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        if (data.user.role !== "student") {
+          setError("Forbidden: This portal is strictly for Students.");
+          return;
+        }
+        localStorage.setItem("user_role", data.user.role);
+        localStorage.setItem("user_name", data.user.name);
+        localStorage.setItem("user_email", data.user.email);
+        onAuthSuccess(data.user.role); // no token anymore
+      } else {
+        setError(data.message || "Google authentication failed.");
+      }
+    } catch (err) {
+      setError("Unable to connect to Sharda Academy server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     if (!email || !password) return;
@@ -91,8 +124,10 @@ export default function UserLogin({ onAuthSuccess }) {
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
@@ -102,11 +137,10 @@ export default function UserLogin({ onAuthSuccess }) {
           setError("Forbidden: This portal is strictly for Students.");
           return;
         }
-        localStorage.setItem("user_token", data.token);
         localStorage.setItem("user_role", data.user.role);
         localStorage.setItem("user_name", data.user.name);
         localStorage.setItem("user_email", data.user.email);
-        onAuthSuccess(data.token, data.user.role);
+        onAuthSuccess(data.user.role); // no token anymore
       } else {
         setError(data.message || "Invalid email address or password.");
       }
@@ -127,8 +161,10 @@ export default function UserLogin({ onAuthSuccess }) {
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email }),
       });
       const data = await res.json();
@@ -156,8 +192,10 @@ export default function UserLogin({ onAuthSuccess }) {
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, otp, newPassword }),
       });
       const data = await res.json();
@@ -206,6 +244,7 @@ export default function UserLogin({ onAuthSuccess }) {
         {/* Top Branding - Kept original main logo with explicit div/span to bypass global overrides */}
         <div className="flex items-center gap-3 relative z-10">
           <img src="/logo.png" alt="Sharda Academy Logo" className="w-12 h-12 object-contain"
+            fetchPriority="high"
             onError={(e) => { e.target.style.display = 'none'; }} />
           <div className="text-left">
             <div 
@@ -306,6 +345,7 @@ export default function UserLogin({ onAuthSuccess }) {
         {/* Mobile Header Branding (Shown only on small screens) */}
         <div className="flex flex-col items-center mb-6 text-center lg:hidden">
           <img src="/logo.png" alt="Sharda Academy Logo" className="w-14 h-14 mb-2"
+            fetchPriority="high"
             onError={(e) => { e.target.style.display = 'none'; }} style={{ objectFit: "contain" }} />
           <h2 className="text-lg font-black text-brand-blue uppercase tracking-tight">SHARDA ACADEMY</h2>
           <p className="text-[9px] font-bold text-brand-yellow uppercase tracking-widest mt-0.5">Student Portal Gateway</p>
@@ -396,10 +436,30 @@ export default function UserLogin({ onAuthSuccess }) {
                 {loading ? "AUTHENTICATING..." : "SIGN IN TO PORTAL"}
               </button>
 
+              <div className="my-3 flex items-center justify-center">
+                <div className="h-px bg-slate-200 flex-1"></div>
+                <span className="px-3 text-[10px] text-slate-400 font-bold uppercase">OR</span>
+                <div className="h-px bg-slate-200 flex-1"></div>
+              </div>
+
+              <div className="flex justify-center w-full [&>div]:w-full [&>div>div]:!w-full [&>div>iframe]:!w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+                <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setError("Google login failed")}
+                    useOneTap={false}
+                    theme={darkMode ? "filled_black" : "outline"}
+                    size="large"
+                    shape="rectangular"
+                    text="continue_with"
+                  />
+                </GoogleOAuthProvider>
+              </div>
+
               <button
                 type="button"
                 onClick={() => { setTab("forgot"); setStep(1); setError(""); setMessage(""); }}
-                className="block w-full text-center text-[10px] font-bold text-slate-500 transition uppercase tracking-wider cursor-pointer"
+                className="block w-full text-center text-[10px] font-bold text-slate-500 transition uppercase tracking-wider cursor-pointer mt-3"
                 style={{ transition: "color 0.2s" }}
                 onMouseEnter={(e) => { e.target.style.color = "#0a1835"; }}
                 onMouseLeave={(e) => { e.target.style.color = "#6b7280"; }}
@@ -515,8 +575,10 @@ export default function UserLogin({ onAuthSuccess }) {
                         setLoading(true); setError(""); setMessage("");
                         try {
                           const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        credentials: "include",
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
+                            credentials: "include",
                             body: JSON.stringify({ email }),
                           });
                           const data = await res.json();

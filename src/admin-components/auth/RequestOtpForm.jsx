@@ -25,6 +25,7 @@ export default function RequestOtpForm({
     setError(null);
     try {
       const response = await fetch(`${backendUrl}/api/otp/send`, {
+        credentials: "include",
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, context }),

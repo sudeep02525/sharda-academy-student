@@ -409,10 +409,12 @@ export default function StudentDashboard({ token, onLogout }) {
     if (!isSilent) setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/student/dashboard`, {
+        credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
       });
       
       const receiptsRes = await fetch(`${API_BASE_URL}/student/receipts`, {
+        credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -522,6 +524,7 @@ export default function StudentDashboard({ token, onLogout }) {
       }
 
       const orderRes = await fetch(`${API_BASE_URL}/student/fees/${paySimulating._id}/razorpay-order`, {
+        credentials: "include",
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -551,6 +554,7 @@ export default function StudentDashboard({ token, onLogout }) {
           try {
             setLoading(true);
             const verifyRes = await fetch(`${API_BASE_URL}/student/fees/${paySimulating._id}/razorpay-verify`, {
+        credentials: "include",
               method: "POST",
               headers: { 
                 "Content-Type": "application/json",
@@ -638,6 +642,7 @@ export default function StudentDashboard({ token, onLogout }) {
     setOtpSuccess("");
     try {
       const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.student.email })
@@ -676,6 +681,7 @@ export default function StudentDashboard({ token, onLogout }) {
     setOtpSuccess("");
     try {
       const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.student.email, otp: otpCodeInput, newPassword })
@@ -715,6 +721,7 @@ export default function StudentDashboard({ token, onLogout }) {
     setOtpSuccess("");
     try {
       const res = await fetch(`${API_BASE_URL}/student/change-password`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",

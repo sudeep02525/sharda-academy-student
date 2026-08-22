@@ -9,7 +9,7 @@ export default function UserPortal() {
   const [role, setRole] = useState("");
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("user_token");
+    const savedToken = null /* handled by httpOnly cookie */;
     const savedRole = localStorage.getItem("user_role");
     if (savedToken) {
       setToken(savedToken);
