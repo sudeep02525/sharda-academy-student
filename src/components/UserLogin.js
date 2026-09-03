@@ -131,6 +131,12 @@ export default function UserLogin({ onAuthSuccess }) {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
+      
+      const remainingAttempts = res.headers.get('RateLimit-Remaining') || res.headers.get('X-RateLimit-Remaining');
+      let limitMsg = "";
+      if (remainingAttempts !== null && remainingAttempts !== undefined) {
+        limitMsg = ` (${remainingAttempts} attempts remaining)`;
+      }
 
       if (data.success) {
         if (data.user.role !== "student") {
@@ -142,7 +148,7 @@ export default function UserLogin({ onAuthSuccess }) {
         localStorage.setItem("user_email", data.user.email);
         onAuthSuccess(data.user.role); // no token anymore
       } else {
-        setError(data.message || "Invalid email address or password.");
+        setError((data.message || "Invalid email address or password.") + limitMsg);
       }
     } catch (err) {
       setError("Unable to connect to Sharda Academy server.");
