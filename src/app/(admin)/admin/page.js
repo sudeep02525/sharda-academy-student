@@ -1323,10 +1323,10 @@ export default function AdminPortal() {
     setLoading(true);
     try {
       const res = await fetch(
-        `${API_BASE_URL}/admin/admissions/${id}`,
+        `${API_BASE_URL}/api/admissions/${id}/status`,
         {
         credentials: "include",
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
