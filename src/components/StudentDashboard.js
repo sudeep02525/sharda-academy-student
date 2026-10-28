@@ -98,7 +98,9 @@ export default function StudentDashboard({ token, onLogout }) {
       const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
       audio.volume = 0.8;
       audio.play().catch(e => console.log("Audio play blocked:", e));
-    } catch(e) {}
+    } catch(e) {
+      console.warn("Audio playback initialization error:", e);
+    }
   };
 
   useEffect(() => {

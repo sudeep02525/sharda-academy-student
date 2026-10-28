@@ -8,7 +8,9 @@ import { API_BASE_URL } from "@/utils/config";
 
 const playNotificationSound = () => {
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const audioCtx = new AudioContextClass();
     
     const playBeep = (freq, startTime, duration) => {
       const oscillator = audioCtx.createOscillator();
@@ -38,39 +40,57 @@ const playNotificationSound = () => {
   }
 };
 
-export default function NotificationListener() {
-  const [permission, setPermission] = useState("default");
+export default function NotificationListener({ role = "auto" }) {
+  const [, setPermission] = useState("default");
   const pathname = usePathname();
+
+  const isAdmin = role === "admin" || (role === "auto" && pathname?.startsWith("/admin"));
 
   useEffect(() => {
     // 1. Request Browser Notification Permission
-    if ("Notification" in window) {
+    if (typeof window !== "undefined" && "Notification" in window) {
       Notification.requestPermission().then((status) => {
         setPermission(status);
+      }).catch((err) => {
+        console.warn("Notification permission request failed", err);
       });
     }
   }, []);
 
   useEffect(() => {
-    // Only connect if we are logged in
-    const storedToken = null /* handled by httpOnly cookie */;
-    if (!storedToken) return;
-    
-    // 2. Connect to Socket.io backend
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL || `${API_BASE_URL}`;
-    const socket = io(socketUrl);
+    if (typeof window === "undefined") return;
 
-    socket.on("connect", () => {
-      console.log("Connected to Real-Time Notifications Server!");
+    // Check login state
+    if (isAdmin) {
+      const storedToken = localStorage.getItem("admin_token");
+      if (!storedToken) return;
+    } else {
+      // For student portal, check if user session indicator exists
+      const hasSession = localStorage.getItem("user_role") || localStorage.getItem("user_token");
+      // If student is on login page without credentials, avoid persistent connection
+      if (!hasSession && pathname === "/") {
+        // Allow connection if auth cookie may be present or wait for login
+      }
+    }
+    
+    // Connect to Socket.io backend
+    const socketUrl = process.env.NEXT_PUBLIC_API_URL || `${API_BASE_URL}`;
+    const socket = io(socketUrl, {
+      withCredentials: true,
+      transports: ["websocket", "polling"]
     });
 
-    const triggerNotification = (title, body, emoji) => {
+    socket.on("connect", () => {
+      console.log(`Connected to Real-Time Notifications Server! Mode: ${isAdmin ? "Admin" : "Student"}`);
+    });
+
+    const triggerNotification = (title, body, emoji, borderColor = "border-indigo-100") => {
       playNotificationSound();
       
       // Show Beautiful In-App Toast
-      toast((t) => (
+      toast(() => (
         <div className="flex items-center gap-4 min-w-[280px]">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-sm border border-indigo-100">
+          <div className={`w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden shrink-0 shadow-sm border ${borderColor}`}>
             <span className="text-2xl">{emoji}</span>
           </div>
           <div className="flex flex-col">
@@ -78,59 +98,68 @@ export default function NotificationListener() {
             <span className="text-gray-600 dark:text-gray-200 font-medium text-sm">{body}</span>
           </div>
         </div>
-      ), { duration: 10000, style: { background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)' } });
+      ), { duration: 10000, style: { background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)' } });
 
       // Native OS Notification
-      if (Notification.permission === "granted") {
-        const notification = new Notification(`${emoji} ${title}`, {
-          body: body,
-        });
-
-        // Click to open app
-        notification.onclick = () => {
-          window.focus();
-        };
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission();
+      if (typeof window !== "undefined" && "Notification" in window) {
+        if (Notification.permission === "granted") {
+          const notification = new Notification(`${emoji} ${title}`, { body });
+          notification.onclick = () => {
+            window.focus();
+          };
+        }
       }
     };
 
-    socket.on("new_notice", (data) => {
-      console.log("New notice:", data);
-      triggerNotification("New Notice Added!", `Check out the latest notice: ${data.title || "New updates available"}`, "📢");
-    });
+    if (isAdmin) {
+      // Admin-specific events
+      socket.on("fee_paid", (data) => {
+        console.log("Admin fee_paid event:", data);
+        triggerNotification(
+          "Fee Payment Received",
+          `Student ID ${data?.studentId || "unknown"} just paid ₹${data?.amountPaid || data?.amount || "0"}.`,
+          "✅",
+          "border-green-100"
+        );
+      });
+    } else {
+      // Student-specific events
+      socket.on("new_notice", (data) => {
+        console.log("New notice:", data);
+        triggerNotification("New Notice Added!", `Check out the latest notice: ${data?.title || "New updates available"}`, "📢");
+      });
 
-    socket.on("new_homework", (data) => {
-      console.log("New homework:", data);
-      triggerNotification("New Homework Assigned!", `Homework for subject: ${data.subject || "Unknown"}`, "📚");
-    });
+      socket.on("new_homework", (data) => {
+        console.log("New homework:", data);
+        triggerNotification("New Homework Assigned!", `Homework for subject: ${data?.subject || "Unknown"}`, "📚");
+      });
 
-    socket.on("new_fee", (data) => {
-      // Typically new_fee is targeted to a specific student, but the backend emits it globally currently
-      // Ideally we would filter: if (data.studentId !== myStudentId) return;
-      console.log("New fee request:", data);
-      triggerNotification("New Fee Payment Required", `A fee record of ₹${data.amount || "0"} has been added.`, "💰");
-    });
+      socket.on("new_fee", (data) => {
+        console.log("New fee request:", data);
+        triggerNotification("New Fee Payment Required", `A fee record of ₹${data?.amount || "0"} has been added.`, "💰");
+      });
 
-    socket.on("fee_paid", (data) => {
-      console.log("Fee paid event:", data);
-      
-      const storedUserStr = localStorage.getItem("user_details");
-      if (storedUserStr) {
-        try {
-          const user = JSON.parse(storedUserStr);
-          // Optional: Only show notification if it belongs to this student
-          // if (data.studentId !== user._id) return;
-        } catch (e) {}
-      }
-      
-      triggerNotification("Payment Successful!", `Your payment of ₹${data.amountPaid || "0"} has been recorded. Status: ${data.status}`, "✅");
-    });
+      socket.on("fee_paid", (data) => {
+        console.log("Fee paid event:", data);
+        const storedUserStr = localStorage.getItem("user_details");
+        if (storedUserStr) {
+          try {
+            const user = JSON.parse(storedUserStr);
+            if (data?.studentId && user?._id && data.studentId !== user._id) {
+              return; // Not for this student
+            }
+          } catch (e) {
+            console.error("Failed to parse user details for fee notification filtering:", e);
+          }
+        }
+        triggerNotification("Payment Successful!", `Your payment of ₹${data?.amountPaid || "0"} has been recorded. Status: ${data?.status || "Success"}`, "✅", "border-green-100");
+      });
+    }
 
     return () => {
       socket.disconnect();
     };
-  }, [pathname]);
+  }, [pathname, isAdmin]);
 
   return <Toaster position="top-right" />;
 }

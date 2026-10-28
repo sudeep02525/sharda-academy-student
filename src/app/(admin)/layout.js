@@ -1,5 +1,5 @@
 import "./globals.css";
-import NotificationListener from "@/admin-components/NotificationListener";
+import NotificationListener from "@/components/NotificationListener";
 
 export const metadata = {
   title: "Admin Portal | Sharda Academy Portal",

@@ -287,7 +287,9 @@ export default function AdminPortal() {
       const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
       audio.volume = 0.8;
       audio.play().catch(e => console.log("Audio play blocked:", e));
-    } catch(e) {}
+    } catch(e) {
+      console.warn("Admin audio play initialization error:", e);
+    }
   };
 
   useEffect(() => {
@@ -1338,9 +1340,12 @@ export default function AdminPortal() {
       if (data.success) {
         setMessage(`Inquiry marked as ${status}!`);
         fetchAnalytics(token);
+      } else {
+        setError(data.message || `Failed to mark inquiry as ${status}`);
       }
     } catch (err) {
-      // inquiry failed
+      console.error("Inquiry status update error:", err);
+      setError("Network or server error while updating inquiry status.");
     } finally {
       setLoading(false);
     }
